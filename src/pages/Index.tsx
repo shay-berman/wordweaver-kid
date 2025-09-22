@@ -76,26 +76,26 @@ const Index = () => {
             ותשחקו משחקים מגניבים שיעזרו לכם להשתפר באנגלית.
           </p>
           
-          <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto">
-            <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-game">
-              <BookOpen className="w-12 h-12 text-primary mb-3" />
-              <h3 className="font-bold mb-2">למד מילים</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-3xl mx-auto">
+            <div className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation">
+              <BookOpen className="w-10 h-10 sm:w-12 sm:h-12 text-primary mb-3" />
+              <h3 className="font-bold mb-2 text-base sm:text-lg">למד מילים</h3>
               <p className="text-sm text-muted-foreground text-center">
                 אוצר מילים חדש וניגודים
               </p>
             </div>
             
-            <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-game">
-              <Target className="w-12 h-12 text-success mb-3" />
-              <h3 className="font-bold mb-2">תרגל דקדוק</h3>
+            <div className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation">
+              <Target className="w-10 h-10 sm:w-12 sm:h-12 text-success mb-3" />
+              <h3 className="font-bold mb-2 text-base sm:text-lg">תרגל דקדוק</h3>
               <p className="text-sm text-muted-foreground text-center">
                 הפועל to be ומבני משפט
               </p>
             </div>
             
-            <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-game">
-              <Trophy className="w-12 h-12 text-accent mb-3" />
-              <h3 className="font-bold mb-2">זכה בפרסים</h3>
+            <div className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation">
+              <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-accent mb-3" />
+              <h3 className="font-bold mb-2 text-base sm:text-lg">זכה בפרסים</h3>
               <p className="text-sm text-muted-foreground text-center">
                 עלה ברמות וצבור נקודות
               </p>
@@ -105,7 +105,7 @@ const Index = () => {
           <Button 
             onClick={() => setGameStarted(true)}
             size="lg"
-            className="bg-gradient-hero hover:opacity-90 text-lg px-8 py-6 animate-glow-pulse"
+            className="bg-gradient-hero hover:opacity-90 text-lg sm:text-xl px-6 sm:px-8 py-4 sm:py-6 min-h-[60px] touch-manipulation animate-glow-pulse"
           >
             התחל את ההרפתקה! 🚀
           </Button>
@@ -137,8 +137,8 @@ const Index = () => {
         <GameHeader {...playerData} />
         
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-4 text-right">בחר משחק:</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">בחר משחק:</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {gameLevels.map((level) => (
               <GameCard
                 key={level.id}

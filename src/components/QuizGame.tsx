@@ -66,16 +66,19 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     const percentage = (score / questions.length) * 100;
     return (
       <Card className="max-w-2xl mx-auto">
-        <CardContent className="p-8 text-center">
-          <Award className="w-16 h-16 mx-auto mb-4 text-accent animate-bounce-gentle" />
-          <h2 className="text-3xl font-bold mb-4">כל הכבוד!</h2>
-          <p className="text-xl mb-6">
+        <CardContent className="p-6 sm:p-8 text-center">
+          <Award className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-accent animate-bounce-gentle" />
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">כל הכבוד!</h2>
+          <p className="text-lg sm:text-xl mb-6 leading-relaxed">
             ענית נכון על {score} מתוך {questions.length} שאלות
           </p>
-          <div className="text-lg mb-6">
+          <div className="text-base sm:text-lg mb-6">
             <span className="text-accent font-bold">{percentage.toFixed(0)}%</span> הצלחה
           </div>
-          <Button onClick={onBack} className="bg-gradient-hero">
+          <Button 
+            onClick={onBack} 
+            className="bg-gradient-hero min-h-[48px] px-6 sm:px-8 text-sm sm:text-base touch-manipulation"
+          >
             חזור למשחקים
           </Button>
         </CardContent>
@@ -85,9 +88,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
 
   return (
     <Card className="max-w-2xl mx-auto">
-      <CardHeader>
+      <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
-          <CardTitle>שאלה {currentQuestion + 1} מתוך {questions.length}</CardTitle>
+          <CardTitle className="text-base sm:text-lg">שאלה {currentQuestion + 1} מתוך {questions.length}</CardTitle>
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             {timeLeft}
@@ -96,16 +99,16 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
         <Progress value={progress} className="h-2" />
       </CardHeader>
       
-      <CardContent className="p-6">
-        <h3 className="text-xl font-semibold mb-6 text-right">{current.question}</h3>
+      <CardContent className="p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-semibold mb-6 text-right leading-relaxed">{current.question}</h3>
         
         {current.type === "multiple-choice" && current.options && (
-          <div className="space-y-3">
+          <div className="space-y-3 sm:space-y-4">
             {current.options.map((option, index) => (
               <Button
                 key={index}
                 variant={selectedAnswer === option ? "default" : "outline"}
-                className={`w-full text-right justify-end p-4 h-auto ${
+                className={`w-full text-right justify-end p-4 sm:p-5 h-auto min-h-[56px] text-sm sm:text-base touch-manipulation ${
                   showResult
                     ? option === current.correctAnswer
                       ? "bg-success text-success-foreground border-success"
@@ -124,7 +127,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
                   {showResult && selectedAnswer === option && option !== current.correctAnswer && (
                     <X className="w-5 h-5" />
                   )}
-                  {option}
+                  <span className="leading-relaxed">{option}</span>
                 </div>
               </Button>
             ))}
@@ -154,8 +157,12 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
           </div>
         )}
 
-        <div className="flex justify-between mt-6">
-          <Button variant="outline" onClick={onBack}>
+        <div className="flex justify-between mt-6 gap-3">
+          <Button 
+            variant="outline" 
+            onClick={onBack}
+            className="min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
+          >
             חזור
           </Button>
           
@@ -163,12 +170,15 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
             <Button 
               onClick={handleAnswer}
               disabled={!selectedAnswer}
-              className="bg-gradient-hero"
+              className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
             >
               שלח תשובה
             </Button>
           ) : (
-            <Button onClick={nextQuestion} className="bg-gradient-hero">
+            <Button 
+              onClick={nextQuestion} 
+              className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
+            >
               {currentQuestion + 1 < questions.length ? "שאלה הבאה" : "סיום"}
             </Button>
           )}
