@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, X, Clock, Award } from "lucide-react";
+import { CheckCircle, X, Clock, Award, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export interface Question {
@@ -27,6 +27,89 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize background music
+  useEffect(() => {
+    let audioContext: AudioContext | null = null;
+    let isPlaying = false;
+
+    const playBackgroundMusic = async () => {
+      if (!musicPlaying || isPlaying) return;
+      
+      try {
+        audioContext = new AudioContext();
+        isPlaying = true;
+        
+        // Create a simple children's beat pattern
+        const createBeat = (frequency: number, startTime: number, duration: number) => {
+          const oscillator = audioContext!.createOscillator();
+          const gainNode = audioContext!.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext!.destination);
+          
+          oscillator.frequency.setValueAtTime(frequency, startTime);
+          oscillator.type = 'square';
+          
+          gainNode.gain.setValueAtTime(0, startTime);
+          gainNode.gain.linearRampToValueAtTime(0.05, startTime + 0.01);
+          gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+          
+          oscillator.start(startTime);
+          oscillator.stop(startTime + duration);
+        };
+
+        // Create a cheerful beat pattern
+        const playPattern = () => {
+          if (!audioContext || !musicPlaying) return;
+          
+          const now = audioContext.currentTime;
+          const beatInterval = 0.5; // 120 BPM
+          
+          // Main beat - C major scale pattern
+          const notes = [262, 294, 330, 349, 392, 440, 494, 523]; // C4 to C5
+          
+          for (let i = 0; i < 8; i++) {
+            const time = now + i * beatInterval;
+            const note = notes[i % notes.length];
+            createBeat(note, time, 0.2);
+          }
+          
+          // Schedule next pattern
+          setTimeout(() => {
+            if (musicPlaying && audioContext) {
+              playPattern();
+            }
+          }, 4000);
+        };
+
+        playPattern();
+      } catch (error) {
+        console.log('Audio context not available:', error);
+      }
+    };
+
+    const stopMusic = () => {
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+        audioContext = null;
+        isPlaying = false;
+      }
+    };
+
+    if (musicPlaying) {
+      // Start music after a short delay to avoid immediate context issues
+      setTimeout(playBackgroundMusic, 100);
+    } else {
+      stopMusic();
+    }
+
+    return () => {
+      stopMusic();
+    };
+  }, [musicPlaying]);
 
   useEffect(() => {
     if (timeLeft > 0 && !showResult && !gameCompleted) {
@@ -56,6 +139,10 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       setGameCompleted(true);
       onComplete(score, xpEarned);
     }
+  };
+
+  const toggleMusic = () => {
+    setMusicPlaying(!musicPlaying);
   };
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
@@ -91,10 +178,20 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
           <CardTitle className="text-base sm:text-lg">שאלה {currentQuestion + 1} מתוך {questions.length}</CardTitle>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {timeLeft}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMusic}
+              className="w-8 h-8"
+            >
+              <Volume2 className={`w-4 h-4 ${musicPlaying ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {timeLeft}
+            </Badge>
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </CardHeader>
@@ -156,7 +253,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
             ) : (
               <Button 
                 onClick={nextQuestion} 
-                className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation shadow-lg"
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation shadow-lg animate-pulse border-2 border-emerald-300"
               >
                 {currentQuestion + 1 < questions.length ? "שאלה הבאה" : "סיום"}
               </Button>
