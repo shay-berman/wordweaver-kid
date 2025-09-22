@@ -77,7 +77,18 @@ const Index = () => {
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-3xl mx-auto">
-            <div className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation">
+            <div 
+              className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation cursor-pointer hover:bg-card/80 active:scale-95 transition-all"
+              onClick={() => {
+                console.log("Learn words card clicked!");
+                setGameStarted(true);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log("Learn words card touched!");
+                setGameStarted(true);
+              }}
+            >
               <BookOpen className="w-10 h-10 sm:w-12 sm:h-12 text-primary mb-3" />
               <h3 className="font-bold mb-2 text-base sm:text-lg">למד מילים</h3>
               <p className="text-sm text-muted-foreground text-center">
@@ -85,7 +96,18 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation">
+            <div 
+              className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation cursor-pointer hover:bg-card/80 active:scale-95 transition-all"
+              onClick={() => {
+                console.log("Grammar card clicked!");
+                setGameStarted(true);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log("Grammar card touched!");
+                setGameStarted(true);
+              }}
+            >
               <Target className="w-10 h-10 sm:w-12 sm:h-12 text-success mb-3" />
               <h3 className="font-bold mb-2 text-base sm:text-lg">תרגל דקדוק</h3>
               <p className="text-sm text-muted-foreground text-center">
@@ -93,7 +115,18 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation">
+            <div 
+              className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation cursor-pointer hover:bg-card/80 active:scale-95 transition-all"
+              onClick={() => {
+                console.log("Prizes card clicked!");
+                setGameStarted(true);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log("Prizes card touched!");
+                setGameStarted(true);
+              }}
+            >
               <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-accent mb-3" />
               <h3 className="font-bold mb-2 text-base sm:text-lg">זכה בפרסים</h3>
               <p className="text-sm text-muted-foreground text-center">
@@ -104,11 +137,17 @@ const Index = () => {
           
           <Button 
             onClick={() => {
-              console.log("Button clicked!");
+              console.log("Start button clicked!");
+              setGameStarted(true);
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              console.log("Start button touched!");
               setGameStarted(true);
             }}
             size="lg"
-            className="bg-gradient-hero hover:opacity-90 text-lg sm:text-xl px-6 sm:px-8 py-4 sm:py-6 min-h-[60px] touch-manipulation animate-glow-pulse"
+            className="bg-gradient-hero hover:opacity-90 active:scale-95 text-lg sm:text-xl px-6 sm:px-8 py-4 sm:py-6 min-h-[60px] touch-manipulation animate-glow-pulse"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             התחל את ההרפתקה! 🚀
           </Button>
