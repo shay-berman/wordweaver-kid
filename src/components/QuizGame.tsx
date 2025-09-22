@@ -27,8 +27,16 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [gameCompleted, setGameCompleted] = useState(false);
-  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [musicType, setMusicType] = useState(0); // 0 = off, 1-4 = different songs
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  const musicTypes = [
+    { name: "Off", icon: "🔇" },
+    { name: "Happy Adventure", icon: "🎵" },
+    { name: "Magical Journey", icon: "✨" },
+    { name: "Playful March", icon: "🎪" },
+    { name: "Wonder Theme", icon: "🌟" }
+  ];
 
   // Initialize background music
   useEffect(() => {
@@ -36,14 +44,14 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     let isPlaying = false;
 
     const playBackgroundMusic = async () => {
-      if (!musicPlaying || isPlaying) return;
+      if (musicType === 0 || isPlaying) return;
       
       try {
         audioContext = new AudioContext();
         isPlaying = true;
         
-        // Create a simple children's beat pattern
-        const createBeat = (frequency: number, startTime: number, duration: number) => {
+        // Create Disney-style melodies
+        const createNote = (frequency: number, startTime: number, duration: number, volume = 0.08) => {
           const oscillator = audioContext!.createOscillator();
           const gainNode = audioContext!.createGain();
           
@@ -51,38 +59,66 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
           gainNode.connect(audioContext!.destination);
           
           oscillator.frequency.setValueAtTime(frequency, startTime);
-          oscillator.type = 'square';
+          oscillator.type = 'sine';
           
           gainNode.gain.setValueAtTime(0, startTime);
-          gainNode.gain.linearRampToValueAtTime(0.05, startTime + 0.01);
+          gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+          gainNode.gain.linearRampToValueAtTime(volume * 0.7, startTime + duration * 0.8);
           gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
           
           oscillator.start(startTime);
           oscillator.stop(startTime + duration);
         };
 
-        // Create a cheerful beat pattern
+        const getMelodyPattern = (type: number) => {
+          const patterns = {
+            1: [ // Happy Adventure - "Twinkle Twinkle" style
+              { note: 262, duration: 0.5 }, { note: 262, duration: 0.5 }, { note: 392, duration: 0.5 }, { note: 392, duration: 0.5 },
+              { note: 440, duration: 0.5 }, { note: 440, duration: 0.5 }, { note: 392, duration: 1.0 },
+              { note: 349, duration: 0.5 }, { note: 349, duration: 0.5 }, { note: 330, duration: 0.5 }, { note: 330, duration: 0.5 },
+              { note: 294, duration: 0.5 }, { note: 294, duration: 0.5 }, { note: 262, duration: 1.0 }
+            ],
+            2: [ // Magical Journey - "Mary Had a Little Lamb" style
+              { note: 330, duration: 0.5 }, { note: 294, duration: 0.5 }, { note: 262, duration: 0.5 }, { note: 294, duration: 0.5 },
+              { note: 330, duration: 0.5 }, { note: 330, duration: 0.5 }, { note: 330, duration: 1.0 },
+              { note: 294, duration: 0.5 }, { note: 294, duration: 0.5 }, { note: 294, duration: 1.0 },
+              { note: 330, duration: 0.5 }, { note: 392, duration: 0.5 }, { note: 392, duration: 1.0 }
+            ],
+            3: [ // Playful March - "London Bridge" style
+              { note: 392, duration: 0.5 }, { note: 440, duration: 0.5 }, { note: 392, duration: 0.5 }, { note: 349, duration: 0.5 },
+              { note: 330, duration: 0.5 }, { note: 349, duration: 0.5 }, { note: 392, duration: 1.0 },
+              { note: 262, duration: 0.5 }, { note: 330, duration: 0.5 }, { note: 349, duration: 0.5 }, { note: 330, duration: 0.5 },
+              { note: 349, duration: 0.5 }, { note: 392, duration: 0.5 }, { note: 392, duration: 1.0 }
+            ],
+            4: [ // Wonder Theme - "Happy Birthday" style
+              { note: 262, duration: 0.3 }, { note: 262, duration: 0.2 }, { note: 294, duration: 0.5 }, { note: 262, duration: 0.5 },
+              { note: 349, duration: 0.5 }, { note: 330, duration: 1.0 },
+              { note: 262, duration: 0.3 }, { note: 262, duration: 0.2 }, { note: 294, duration: 0.5 }, { note: 262, duration: 0.5 },
+              { note: 392, duration: 0.5 }, { note: 349, duration: 1.0 }
+            ]
+          };
+          return patterns[type as keyof typeof patterns] || [];
+        };
+
+        // Create a cheerful melody pattern
         const playPattern = () => {
-          if (!audioContext || !musicPlaying) return;
+          if (!audioContext || musicType === 0) return;
           
           const now = audioContext.currentTime;
-          const beatInterval = 0.5; // 120 BPM
+          const melody = getMelodyPattern(musicType);
+          let currentTime = now;
           
-          // Main beat - C major scale pattern
-          const notes = [262, 294, 330, 349, 392, 440, 494, 523]; // C4 to C5
-          
-          for (let i = 0; i < 8; i++) {
-            const time = now + i * beatInterval;
-            const note = notes[i % notes.length];
-            createBeat(note, time, 0.2);
-          }
+          melody.forEach(({ note, duration }) => {
+            createNote(note, currentTime, duration * 0.8);
+            currentTime += duration;
+          });
           
           // Schedule next pattern
           setTimeout(() => {
-            if (musicPlaying && audioContext) {
+            if (musicType > 0 && audioContext) {
               playPattern();
             }
-          }, 4000);
+          }, melody.reduce((sum, { duration }) => sum + duration, 0) * 1000 + 500);
         };
 
         playPattern();
@@ -99,7 +135,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       }
     };
 
-    if (musicPlaying) {
+    if (musicType > 0) {
       // Start music after a short delay to avoid immediate context issues
       setTimeout(playBackgroundMusic, 100);
     } else {
@@ -109,7 +145,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     return () => {
       stopMusic();
     };
-  }, [musicPlaying]);
+  }, [musicType]);
 
   useEffect(() => {
     if (timeLeft > 0 && !showResult && !gameCompleted) {
@@ -142,7 +178,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   };
 
   const toggleMusic = () => {
-    setMusicPlaying(!musicPlaying);
+    setMusicType((prev) => (prev + 1) % musicTypes.length);
   };
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
@@ -183,9 +219,13 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
               variant="ghost"
               size="icon"
               onClick={toggleMusic}
-              className="w-8 h-8"
+              className="w-8 h-8 relative"
+              title={`Music: ${musicTypes[musicType].name}`}
             >
-              <Volume2 className={`w-4 h-4 ${musicPlaying ? 'text-primary' : 'text-muted-foreground'}`} />
+              <Volume2 className={`w-4 h-4 ${musicType > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className="absolute -top-1 -right-1 text-xs">
+                {musicTypes[musicType].icon}
+              </span>
             </Button>
             <Badge variant="outline" className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
