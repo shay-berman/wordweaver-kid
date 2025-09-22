@@ -28,6 +28,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [musicType, setMusicType] = useState(0); // 0 = off, 1-4 = different songs
+  const [showConfetti, setShowConfetti] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const musicTypes = [
@@ -160,6 +161,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
     if (isCorrect) {
       setScore(score + 1);
+      setShowConfetti(true);
+      // Auto-hide confetti after 2 seconds
+      setTimeout(() => setShowConfetti(false), 2000);
     }
     setShowResult(true);
   };
@@ -210,7 +214,27 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   }
 
   return (
-    <Card className="max-w-2xl mx-auto mb-6">
+    <div className="relative">
+      {/* Confetti Effect */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          <div className="confetti-container">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className={`confetti confetti-${i % 5}`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${2 + Math.random() * 1}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <Card className="max-w-2xl mx-auto mb-6">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
           <CardTitle className="text-base sm:text-lg">שאלה {currentQuestion + 1} מתוך {questions.length}</CardTitle>
@@ -325,5 +349,6 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 };

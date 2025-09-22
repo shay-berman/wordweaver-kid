@@ -142,3 +142,52 @@ All colors MUST be HSL.
     transition: transform 0.1s ease;
   }
 }
+
+/* Confetti Animation */
+@layer components {
+  .confetti-container {
+    @apply absolute inset-0;
+  }
+  
+  .confetti {
+    @apply absolute w-3 h-3 opacity-90;
+    animation: confetti-fall linear forwards;
+    transform-origin: center;
+  }
+  
+  .confetti-0 {
+    @apply bg-red-400;
+    transform: rotate(15deg);
+  }
+  
+  .confetti-1 {
+    @apply bg-blue-400;
+    transform: rotate(-15deg);
+  }
+  
+  .confetti-2 {
+    @apply bg-yellow-400;
+    transform: rotate(45deg);
+  }
+  
+  .confetti-3 {
+    @apply bg-green-400;
+    transform: rotate(-45deg); 
+  }
+  
+  .confetti-4 {
+    @apply bg-purple-400;
+    transform: rotate(30deg);
+  }
+  
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-100vh) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg) scale(0.8);
+      opacity: 0;
+    }
+  }
+}
