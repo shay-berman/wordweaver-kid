@@ -87,7 +87,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   }
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto mb-6">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
           <CardTitle className="text-base sm:text-lg">שאלה {currentQuestion + 1} מתוך {questions.length}</CardTitle>
@@ -99,7 +99,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
         <Progress value={progress} className="h-2" />
       </CardHeader>
       
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4 sm:p-6 pb-6">
         <h3 className="text-lg sm:text-xl font-semibold mb-6 text-right leading-relaxed">{current.question}</h3>
         
         {current.type === "multiple-choice" && current.options && (
@@ -134,8 +134,38 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
           </div>
         )}
 
+        {/* Submit button moved higher for mobile visibility */}
+        <div className="mt-6 mb-4">
+          <div className="flex justify-between gap-3">
+            <Button 
+              variant="outline" 
+              onClick={onBack}
+              className="min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
+            >
+              חזור
+            </Button>
+            
+            {!showResult ? (
+              <Button 
+                onClick={handleAnswer}
+                disabled={!selectedAnswer}
+                className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation shadow-lg"
+              >
+                שלח תשובה
+              </Button>
+            ) : (
+              <Button 
+                onClick={nextQuestion} 
+                className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation shadow-lg"
+              >
+                {currentQuestion + 1 < questions.length ? "שאלה הבאה" : "סיום"}
+              </Button>
+            )}
+          </div>
+        </div>
+
         {showResult && (
-          <div className="mt-6 p-4 bg-muted rounded-lg">
+          <div className="p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               {isCorrect ? (
                 <>
@@ -156,33 +186,6 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
             )}
           </div>
         )}
-
-        <div className="flex justify-between mt-6 gap-3">
-          <Button 
-            variant="outline" 
-            onClick={onBack}
-            className="min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
-          >
-            חזור
-          </Button>
-          
-          {!showResult ? (
-            <Button 
-              onClick={handleAnswer}
-              disabled={!selectedAnswer}
-              className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
-            >
-              שלח תשובה
-            </Button>
-          ) : (
-            <Button 
-              onClick={nextQuestion} 
-              className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
-            >
-              {currentQuestion + 1 < questions.length ? "שאלה הבאה" : "סיום"}
-            </Button>
-          )}
-        </div>
       </CardContent>
     </Card>
   );
