@@ -151,10 +151,10 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     if (timeLeft > 0 && !showResult && !gameCompleted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !showResult) {
+    } else if (timeLeft === 0 && !showResult && questions.length > 0) {
       handleAnswer();
     }
-  }, [timeLeft, showResult, gameCompleted]);
+  }, [timeLeft, showResult, gameCompleted, questions.length]);
 
   const handleAnswer = () => {
     const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
