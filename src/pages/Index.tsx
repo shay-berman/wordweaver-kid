@@ -103,7 +103,10 @@ const Index = () => {
           </div>
           
           <Button 
-            onClick={() => setGameStarted(true)}
+            onClick={() => {
+              console.log("Button clicked!");
+              setGameStarted(true);
+            }}
             size="lg"
             className="bg-gradient-hero hover:opacity-90 text-lg sm:text-xl px-6 sm:px-8 py-4 sm:py-6 min-h-[60px] touch-manipulation animate-glow-pulse"
           >

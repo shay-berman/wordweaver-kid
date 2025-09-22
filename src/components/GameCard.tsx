@@ -35,9 +35,15 @@ export const GameCard = ({
   };
 
   return (
-    <Card className={`transition-all duration-300 active:scale-95 touch-manipulation ${
-      locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:bg-gradient-to-br active:from-card active:to-muted/30'
-    } ${completed ? 'border-success bg-success/10' : ''}`}>
+    <Card 
+      className={`transition-all duration-300 active:scale-95 touch-manipulation cursor-pointer ${
+        locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:bg-gradient-to-br active:from-card active:to-muted/30'
+      } ${completed ? 'border-success bg-success/10' : ''}`}
+      onClick={() => {
+        console.log("Card clicked!");
+        if (!locked) onClick();
+      }}
+    >
       <CardHeader className="pb-3 p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <CardTitle className="text-base sm:text-lg flex items-center gap-2">
@@ -61,7 +67,11 @@ export const GameCard = ({
           </div>
           
           <Button 
-            onClick={onClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log("Game button clicked!");
+              if (!locked) onClick();
+            }}
             disabled={locked}
             variant={completed ? "secondary" : "default"}
             className="bg-gradient-hero hover:opacity-90 transition-opacity min-h-[44px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation"
