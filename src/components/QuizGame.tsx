@@ -29,6 +29,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const [gameCompleted, setGameCompleted] = useState(false);
   const [musicType, setMusicType] = useState(0); // 0 = off, 1-4 = different songs
   const [showConfetti, setShowConfetti] = useState(false);
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+  const [showEncouragement, setShowEncouragement] = useState(false);
+  const [encouragementMessage, setEncouragementMessage] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const musicTypes = [
@@ -37,6 +40,17 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     { name: "Magical Journey", icon: "✨" },
     { name: "Playful March", icon: "🎪" },
     { name: "Wonder Theme", icon: "🌟" }
+  ];
+
+  const encouragementMessages = [
+    "כל הכבוד! ממשיך מעולה! 🌟",
+    "איזה יופי! אתה מדהים! ✨", 
+    "וואו! ממש חכם! 🎉",
+    "מקסים! ממשיך כך! 🚀",
+    "נהדר! אתה פשוט מושלם! 🏆",
+    "איזה כוח! אתה גאון! 💫",
+    "מדהים! ממש גאה בך! 🌈",
+    "אלוף! אתה מדהים! ⭐"
   ];
 
   // Initialize background music
@@ -198,8 +212,25 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       setScore(score + 1);
       setShowConfetti(true);
       playSuccessSound();
+      
+      // Track consecutive correct answers
+      const newConsecutiveCorrect = consecutiveCorrect + 1;
+      setConsecutiveCorrect(newConsecutiveCorrect);
+      
+      // Show encouragement every 2 correct answers
+      if (newConsecutiveCorrect % 2 === 0) {
+        const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+        setEncouragementMessage(randomMessage);
+        setShowEncouragement(true);
+        // Hide encouragement after 3 seconds
+        setTimeout(() => setShowEncouragement(false), 3000);
+      }
+      
       // Auto-hide confetti after 2 seconds
       setTimeout(() => setShowConfetti(false), 2000);
+    } else {
+      // Reset consecutive correct counter on wrong answer
+      setConsecutiveCorrect(0);
     }
     setShowResult(true);
     
@@ -272,6 +303,15 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
                 }}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Encouragement Message */}
+      {showEncouragement && (
+        <div className="fixed inset-0 pointer-events-none z-40 flex items-center justify-center">
+          <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-8 py-4 rounded-2xl text-xl sm:text-2xl font-bold shadow-2xl animate-bounce-gentle border-4 border-white/30">
+            {encouragementMessage}
           </div>
         </div>
       )}
