@@ -202,6 +202,12 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       setTimeout(() => setShowConfetti(false), 2000);
     }
     setShowResult(true);
+    
+    // Auto-progress to next question
+    const delay = isCorrect ? 2000 : 4000; // 2 seconds for correct, 4 seconds for incorrect
+    setTimeout(() => {
+      nextQuestion();
+    }, delay);
   };
 
   const nextQuestion = () => {
