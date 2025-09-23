@@ -1,5 +1,12 @@
 import { Question } from "@/components/QuizGame";
 
+export interface GameCategory {
+  id: string;
+  title: string;
+  description: string;
+  levels: GameLevel[];
+}
+
 export interface GameLevel {
   id: string;
   title: string;
@@ -10,7 +17,7 @@ export interface GameLevel {
   unlockLevel: number;
 }
 
-export const gameLevels: GameLevel[] = [
+const gradeSevenLevels: GameLevel[] = [
   {
     id: "vocabulary-basics",
     title: "אוצר מילים בסיסי",
@@ -230,6 +237,272 @@ export const gameLevels: GameLevel[] = [
     ]
   }
 ];
+
+const octoberLevels: GameLevel[] = [
+  {
+    id: "oct-vocabulary-advanced",
+    title: "אוצר מילים מתקדם",
+    description: "למד מילים מתקדמות לכיתה ז'",
+    difficulty: "medium",
+    xpReward: 70,
+    unlockLevel: 1,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "מה זה 'challenge' בעברית?",
+        options: ["בעיה", "אתגר", "פתרון", "תשובה"],
+        correctAnswer: "אתגר",
+        explanation: "Challenge = אתגר, משימה קשה"
+      },
+      {
+        id: "q2", 
+        type: "multiple-choice",
+        question: "מה זה 'opportunity' בעברית?",
+        options: ["הזדמנות", "בעיה", "רגע", "זמן"],
+        correctAnswer: "הזדמנות",
+        explanation: "Opportunity = הזדמנות"
+      },
+      {
+        id: "q3",
+        type: "multiple-choice", 
+        question: "מה זה 'responsibility' בעברית?",
+        options: ["חופש", "אחריות", "זכות", "כוח"],
+        correctAnswer: "אחריות",
+        explanation: "Responsibility = אחריות"
+      },
+      {
+        id: "q4",
+        type: "multiple-choice",
+        question: "מה זה 'environment' בעברית?",
+        options: ["מקום", "סביבה", "אוויר", "מים"],
+        correctAnswer: "סביבה",
+        explanation: "Environment = סביבה"
+      },
+      {
+        id: "q5",
+        type: "multiple-choice",
+        question: "מה זה 'knowledge' בעברית?",
+        options: ["ידע", "ספר", "לימוד", "מחשבה"],
+        correctAnswer: "ידע",
+        explanation: "Knowledge = ידע, מידע שנרכש"
+      }
+    ]
+  },
+  {
+    id: "oct-opposites-advanced",
+    title: "ניגודים מתקדמים",
+    description: "התאם בין מילים מתקדמות והפכים שלהן",
+    difficulty: "medium", 
+    xpReward: 80,
+    unlockLevel: 1,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "מה ההפך של 'difficult'?",
+        options: ["hard", "easy", "simple", "complex"],
+        correctAnswer: "easy",
+        explanation: "Difficult (קשה) ↔ Easy (קל)"
+      },
+      {
+        id: "q2",
+        type: "multiple-choice", 
+        question: "מה ההפך של 'advantage'?",
+        options: ["benefit", "disadvantage", "profit", "gain"],
+        correctAnswer: "disadvantage",
+        explanation: "Advantage (יתרון) ↔ Disadvantage (חיסרון)"
+      },
+      {
+        id: "q3",
+        type: "multiple-choice",
+        question: "מה ההפך של 'ancient'?", 
+        options: ["old", "modern", "historical", "traditional"],
+        correctAnswer: "modern",
+        explanation: "Ancient (עתיק) ↔ Modern (מודרני)"
+      },
+      {
+        id: "q4",
+        type: "multiple-choice",
+        question: "מה ההפך של 'generous'?",
+        options: ["kind", "selfish", "giving", "helpful"],
+        correctAnswer: "selfish",
+        explanation: "Generous (נדיב) ↔ Selfish (אנוכי)"
+      }
+    ]
+  },
+  {
+    id: "oct-grammar-advanced",
+    title: "דקדוק מתקדם",
+    description: "תרגל זמנים ומבנים מתקדמים",
+    difficulty: "hard",
+    xpReward: 100,
+    unlockLevel: 2,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "השלם: She has ___ working here for 5 years.",
+        options: ["been", "being", "be", "was"],
+        correctAnswer: "been",
+        explanation: "Present Perfect: has/have + been + V-ing"
+      },
+      {
+        id: "q2",
+        type: "multiple-choice",
+        question: "השלם: If I ___ rich, I would travel the world.",
+        options: ["am", "was", "were", "be"], 
+        correctAnswer: "were",
+        explanation: "Second Conditional: If + past (were), would + V"
+      },
+      {
+        id: "q3",
+        type: "multiple-choice",
+        question: "השלם: The book ___ by millions of people.",
+        options: ["reads", "is read", "reading", "read"],
+        correctAnswer: "is read", 
+        explanation: "Passive Voice: is/are + past participle"
+      }
+    ]
+  }
+];
+
+const novemberLevels: GameLevel[] = [
+  {
+    id: "nov-vocabulary-expert",
+    title: "אוצר מילים מומחה",
+    description: "למד מילים מורכבות לכיתה ז'",
+    difficulty: "hard",
+    xpReward: 90,
+    unlockLevel: 1,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "מה זה 'achievement' בעברית?",
+        options: ["כישלון", "הישג", "ניסיון", "תקווה"],
+        correctAnswer: "הישג",
+        explanation: "Achievement = הישג, הצלחה"
+      },
+      {
+        id: "q2", 
+        type: "multiple-choice",
+        question: "מה זה 'independence' בעברית?",
+        options: ["תלות", "עצמאות", "חברות", "שיתוף"],
+        correctAnswer: "עצמאות",
+        explanation: "Independence = עצמאות"
+      },
+      {
+        id: "q3",
+        type: "multiple-choice", 
+        question: "מה זה 'curiosity' בעברית?",
+        options: ["סקרנות", "אדישות", "פחד", "כעס"],
+        correctAnswer: "סקרנות",
+        explanation: "Curiosity = סקרנות"
+      },
+      {
+        id: "q4",
+        type: "multiple-choice",
+        question: "מה זה 'magnificent' בעברית?",
+        options: ["רע", "נהדר", "קטן", "רגיל"],
+        correctAnswer: "נהדר",
+        explanation: "Magnificent = נהדר, מפואר"
+      },
+      {
+        id: "q5",
+        type: "multiple-choice",
+        question: "מה זה 'determination' בעברית?",
+        options: ["ספק", "נחישות", "בלבול", "עצלות"],
+        correctAnswer: "נחישות",
+        explanation: "Determination = נחישות, כוונה חזקה"
+      }
+    ]
+  },
+  {
+    id: "nov-grammar-expert",
+    title: "דקדוק מומחה",
+    description: "תרגל מבנים מורכבים",
+    difficulty: "hard",
+    xpReward: 120,
+    unlockLevel: 2,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "השלם: By next year, I ___ my studies.",
+        options: ["will finish", "will have finished", "finish", "finished"],
+        correctAnswer: "will have finished",
+        explanation: "Future Perfect: will have + past participle"
+      },
+      {
+        id: "q2",
+        type: "multiple-choice",
+        question: "השלם: She suggested ___ early.",
+        options: ["to leave", "leaving", "leave", "left"], 
+        correctAnswer: "leaving",
+        explanation: "Suggest + V-ing (gerund)"
+      },
+      {
+        id: "q3",
+        type: "multiple-choice",
+        question: "השלם: ___ it's raining, we'll stay home.",
+        options: ["Although", "Because", "If", "Since"],
+        correctAnswer: "Since", 
+        explanation: "Since = כיוון ש, מביע סיבה"
+      }
+    ]
+  },
+  {
+    id: "nov-reading-expert",
+    title: "הבנת הנקרא מתקדמת",
+    description: "קרא טקסטים מורכבים וענה על שאלות",
+    difficulty: "hard",
+    xpReward: 110,
+    unlockLevel: 3,
+    questions: [
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "קרא: 'Despite the challenging circumstances, Maria achieved remarkable success through her determination and hard work. Her achievement inspired many students.' מה הביא להצלחתה של מריה?",
+        options: ["מזל", "נחישות ועבודה קשה", "עזרה מאחרים", "כישרון טבעי"],
+        correctAnswer: "נחישות ועבודה קשה",
+        explanation: "הטקסט אומר: through her determination and hard work"
+      },
+      {
+        id: "q2",
+        type: "multiple-choice", 
+        question: "מה השפיע ההישג של מריה על התלמידים?",
+        options: ["לא השפיע", "העצבן אותם", "נתן השראה", "גרם לקנאה"],
+        correctAnswer: "נתן השראה",
+        explanation: "הטקסט אומר: Her achievement inspired many students"
+      }
+    ]
+  }
+];
+
+export const gameCategories: GameCategory[] = [
+  {
+    id: "grade-seven",
+    title: "הכנה למיפוי בכיתה ז'",
+    description: "משחקים בסיסיים להכנה למיפוי בכיתה ז'",
+    levels: gradeSevenLevels
+  },
+  {
+    id: "october-exam",
+    title: "הכנה למבחן באוקטובר",
+    description: "תרגול מתקדם עם מילים ומבנים מורכבים יותר",
+    levels: octoberLevels
+  },
+  {
+    id: "november-exam",
+    title: "הכנה למבחן בנובמבר",
+    description: "רמת מומחה - מילים ודקדוק מתקדמים",
+    levels: novemberLevels
+  }
+];
+
+// For backward compatibility
+export const gameLevels: GameLevel[] = gradeSevenLevels;
 
 export const initialPlayerData = {
   playerName: "אלוף האנגלית",
