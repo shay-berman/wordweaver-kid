@@ -157,11 +157,47 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     }
   }, [timeLeft, showResult, gameCompleted, questions.length]);
 
+  const playSuccessSound = () => {
+    try {
+      const audioContext = new AudioContext();
+      
+      // Create a magical success sound with multiple tones
+      const playNote = (frequency: number, startTime: number, duration: number, volume = 0.3) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+      
+      const now = audioContext.currentTime;
+      // Magical success chord progression
+      playNote(523, now, 0.3, 0.2); // C5
+      playNote(659, now + 0.1, 0.3, 0.15); // E5
+      playNote(784, now + 0.2, 0.4, 0.2); // G5
+      playNote(1047, now + 0.3, 0.5, 0.15); // C6
+      
+    } catch (error) {
+      console.log('Success sound not available:', error);
+    }
+  };
+
   const handleAnswer = () => {
     const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
     if (isCorrect) {
       setScore(score + 1);
       setShowConfetti(true);
+      playSuccessSound();
       // Auto-hide confetti after 2 seconds
       setTimeout(() => setShowConfetti(false), 2000);
     }
