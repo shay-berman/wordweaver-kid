@@ -12,6 +12,7 @@ const Index = () => {
   const [playerData, setPlayerData] = useState(initialPlayerData);
   const [currentGame, setCurrentGame] = useState<string | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [gameMode, setGameMode] = useState<"vocabulary" | "grammar" | "all">("all");
 
   useEffect(() => {
     const saved = localStorage.getItem("englishGameData");
@@ -81,11 +82,13 @@ const Index = () => {
               className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation cursor-pointer hover:bg-card/80 active:scale-95 transition-all"
               onClick={() => {
                 console.log("Learn words card clicked!");
+                setGameMode("vocabulary");
                 setGameStarted(true);
               }}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 console.log("Learn words card touched!");
+                setGameMode("vocabulary");
                 setGameStarted(true);
               }}
             >
@@ -100,11 +103,13 @@ const Index = () => {
               className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation cursor-pointer hover:bg-card/80 active:scale-95 transition-all"
               onClick={() => {
                 console.log("Grammar card clicked!");
+                setGameMode("grammar");
                 setGameStarted(true);
               }}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 console.log("Grammar card touched!");
+                setGameMode("grammar");
                 setGameStarted(true);
               }}
             >
@@ -119,11 +124,13 @@ const Index = () => {
               className="flex flex-col items-center p-4 sm:p-6 bg-card rounded-lg shadow-game touch-manipulation cursor-pointer hover:bg-card/80 active:scale-95 transition-all"
               onClick={() => {
                 console.log("Prizes card clicked!");
+                setGameMode("all");
                 setGameStarted(true);
               }}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 console.log("Prizes card touched!");
+                setGameMode("all");
                 setGameStarted(true);
               }}
             >
@@ -138,11 +145,13 @@ const Index = () => {
           <Button 
             onClick={() => {
               console.log("Start button clicked!");
+              setGameMode("all");
               setGameStarted(true);
             }}
             onTouchEnd={(e) => {
               e.preventDefault();
               console.log("Start button touched!");
+              setGameMode("all");
               setGameStarted(true);
             }}
             size="lg"
@@ -173,15 +182,57 @@ const Index = () => {
     );
   }
 
+  const getFilteredGames = () => {
+    if (gameMode === "vocabulary") {
+      return gameLevels.filter(level => 
+        level.id === "vocabulary-basics" || level.id === "opposites-game"
+      );
+    }
+    if (gameMode === "grammar") {
+      return gameLevels.filter(level => 
+        level.id === "grammar-to-be" || level.id === "sentence-completion"
+      );
+    }
+    return gameLevels;
+  };
+
+  const getModeTitle = () => {
+    if (gameMode === "vocabulary") return "למד מילים חדשות:";
+    if (gameMode === "grammar") return "תרגל דקדוק:";
+    return "בחר משחק:";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-background p-4">
       <div className="max-w-4xl mx-auto">
         <GameHeader {...playerData} />
         
+        {/* Enhanced Score Display */}
+        <div className="bg-gradient-hero p-6 rounded-lg shadow-game mb-6 text-center">
+          <h2 className="text-2xl font-bold text-primary-foreground mb-2">הציון הכללי שלך</h2>
+          <div className="text-4xl font-bold text-primary-foreground mb-2">
+            {playerData.score.toLocaleString()} נקודות
+          </div>
+          <p className="text-primary-foreground/80">
+            רמה {playerData.level} • {playerData.completedLevels.length} משחקים הושלמו
+          </p>
+        </div>
+        
         <div className="mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">בחר משחק:</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-right">{getModeTitle()}</h2>
+            {gameMode !== "all" && (
+              <Button 
+                variant="outline"
+                onClick={() => setGameMode("all")}
+                className="text-sm"
+              >
+                כל המשחקים
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {gameLevels.map((level) => (
+            {getFilteredGames().map((level) => (
               <GameCard
                 key={level.id}
                 title={level.title}
