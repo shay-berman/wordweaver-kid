@@ -36,12 +36,29 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     return shuffled;
   };
 
-  // Shuffle questions and their options on first load
+  // Check if questions should be kept in order (for reading comprehension)
+  const shouldKeepOrder = questions.some(q => 
+    q.question.includes('הטקסט') || 
+    q.question.includes('הפסקה') || 
+    q.question.includes('הקטע') ||
+    q.question.includes('הכתוב') ||
+    q.question.includes('המשפט הראשון') ||
+    questions.length > 5 // Also keep order for longer sequences
+  );
+
+  // Keep original order for reading comprehension, shuffle for other types
   const [shuffledQuestions] = useState(() => {
-    return shuffleArray(questions.map(q => ({
-      ...q,
-      options: q.options ? shuffleArray(q.options) : q.options
-    })));
+    if (shouldKeepOrder) {
+      return questions.map(q => ({
+        ...q,
+        options: q.options ? shuffleArray(q.options) : q.options
+      }));
+    } else {
+      return shuffleArray(questions.map(q => ({
+        ...q,
+        options: q.options ? shuffleArray(q.options) : q.options
+      })));
+    }
   });
   
   const [currentQuestion, setCurrentQuestion] = useState(0);
