@@ -60,30 +60,30 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
   // Calculate path positions for a winding map-like path
   const getPathPosition = (index: number, total: number) => {
-    const pathWidth = 60; // How wide the zigzag should be
-    const verticalSpacing = 120; // Space between levels vertically
+    const pathWidth = 120; // How wide the zigzag should be
+    const verticalSpacing = 140; // Space between levels vertically
     
     // Create a winding path that alternates sides and curves
-    const progress = index / (total - 1);
+    const progress = index / Math.max(total - 1, 1);
     const yPosition = index * verticalSpacing;
     
-    // Create different patterns for different sections
+    // Create a more serpentine path with curves
     let xOffset = 0;
-    const section = Math.floor(index / 3); // Group every 3 levels
     
-    if (section % 4 === 0) {
-      // Straight zigzag
-      xOffset = (index % 2 === 0 ? -pathWidth : pathWidth);
-    } else if (section % 4 === 1) {
-      // Curved to the right
-      xOffset = pathWidth * Math.sin(index * 0.8);
-    } else if (section % 4 === 2) {
-      // S-curve
-      xOffset = pathWidth * Math.sin(index * 1.2) * (index % 2 === 0 ? 1 : -1);
-    } else {
-      // Curved to the left
-      xOffset = -pathWidth * Math.sin(index * 0.8);
-    }
+    // Use sine waves to create smooth curves
+    const waveFrequency = 0.8;
+    const waveAmplitude = pathWidth;
+    
+    // Primary sine wave for the main path
+    xOffset = waveAmplitude * Math.sin(index * waveFrequency);
+    
+    // Add secondary wave for more complexity
+    const secondaryWave = (waveAmplitude * 0.3) * Math.sin(index * waveFrequency * 2.5 + Math.PI / 3);
+    xOffset += secondaryWave;
+    
+    // Add some randomness but keep it consistent
+    const pseudoRandom = Math.sin(index * 1.234567) * (waveAmplitude * 0.2);
+    xOffset += pseudoRandom;
     
     return { x: xOffset, y: yPosition };
   };
@@ -121,8 +121,8 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
         </div>
 
         {/* Adventure Map */}
-        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl" 
-             style={{ height: `${Math.max(600, selectedCategory.levels.length * 120 + 200)}px` }}>
+        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl overflow-x-auto" 
+             style={{ height: `${Math.max(600, selectedCategory.levels.length * 140 + 250)}px`, width: '100%', minWidth: '800px' }}>
           {/* Map Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="w-full h-full" style={{
@@ -132,36 +132,81 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
             }}></div>
           </div>
           
-          {/* Winding Path */}
+          {/* Winding Path - More Visible */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
             <defs>
               <linearGradient id="pathGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-                <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity="0.3" />
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
+                <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity="0.8" />
               </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge> 
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
             </defs>
+            
+            {/* Background glow */}
             <path
               d={(() => {
                 const pathPoints = selectedCategory.levels.map((_, index) => {
                   const pos = getPathPosition(index, selectedCategory.levels.length);
-                  return `${300 + pos.x},${100 + pos.y}`;
+                  return { x: 400 + pos.x, y: 100 + pos.y };
                 });
-                return `M ${pathPoints[0]} ${pathPoints.slice(1).map((point, i) => 
-                  `Q ${pathPoints[i].split(',')[0]},${(parseInt(pathPoints[i].split(',')[1]) + parseInt(point.split(',')[1])) / 2} ${point}`
-                ).join(' ')}`;
+                
+                let pathData = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
+                for (let i = 1; i < pathPoints.length; i++) {
+                  const current = pathPoints[i];
+                  const previous = pathPoints[i-1];
+                  const midX = (previous.x + current.x) / 2;
+                  const midY = (previous.y + current.y) / 2;
+                  pathData += ` Q ${midX} ${midY} ${current.x} ${current.y}`;
+                }
+                return pathData;
+              })()}
+              stroke="hsl(var(--primary))"
+              strokeWidth="20"
+              fill="none"
+              opacity="0.3"
+              filter="url(#glow)"
+            />
+            
+            {/* Main path */}
+            <path
+              d={(() => {
+                const pathPoints = selectedCategory.levels.map((_, index) => {
+                  const pos = getPathPosition(index, selectedCategory.levels.length);
+                  return { x: 400 + pos.x, y: 100 + pos.y };
+                });
+                
+                let pathData = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
+                for (let i = 1; i < pathPoints.length; i++) {
+                  const current = pathPoints[i];
+                  const previous = pathPoints[i-1];
+                  const midX = (previous.x + current.x) / 2;
+                  const midY = (previous.y + current.y) / 2;
+                  pathData += ` Q ${midX} ${midY} ${current.x} ${current.y}`;
+                }
+                return pathData;
               })()}
               stroke="url(#pathGradient)"
-              strokeWidth="8"
+              strokeWidth="12"
               fill="none"
-              strokeDasharray="20,10"
+              strokeDasharray="25,15"
               className="animate-pulse"
+              filter="url(#glow)"
             />
           </svg>
           
           {/* Castle Goal - At the end of the path */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 z-20" 
-               style={{ top: `${80 + selectedCategory.levels.length * 120}px` }}>
+          <div className="absolute transform -translate-x-1/2 z-20" 
+               style={{ 
+                 left: `${400 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length).x}px`,
+                 top: `${80 + selectedCategory.levels.length * 140}px` 
+               }}>
             <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-4 rounded-2xl shadow-2xl border-4 border-yellow-400">
               <div className="text-center">
                 <div className="text-4xl mb-2 animate-pulse">🏰</div>
@@ -190,7 +235,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   key={level.id} 
                   className="absolute transform -translate-x-1/2 -translate-y-1/2"
                   style={{
-                    left: `calc(50% + ${position.x}px)`,
+                    left: `${400 + position.x}px`,
                     top: `${100 + position.y}px`
                   }}
                 >
@@ -222,13 +267,13 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                         } ${!isLocked ? 'hover:shadow-2xl' : ''}`}
                         onClick={() => !isLocked && onGameSelect(level.id)}
                       >
-                        <div className={`w-16 h-16 rounded-full border-4 shadow-xl flex items-center justify-center transition-all duration-300 ${
+                        <div className={`w-20 h-20 rounded-full border-4 shadow-2xl flex items-center justify-center transition-all duration-300 ${
                           isCompleted 
-                            ? 'bg-success border-success text-success-foreground shadow-success/50' 
+                            ? 'bg-success border-success text-success-foreground shadow-success/50 shadow-xl' 
                             : isAccessible 
-                              ? 'bg-primary border-primary text-primary-foreground shadow-primary/50 hover:shadow-primary/70' 
+                              ? 'bg-primary border-primary text-primary-foreground shadow-primary/50 hover:shadow-primary/70 shadow-xl' 
                               : 'bg-muted border-muted-foreground text-muted-foreground shadow-muted/30'
-                        }`}>
+                        } backdrop-blur-sm ring-2 ring-white/30`}>
                           {isCompleted ? (
                             <CheckCircle className="w-8 h-8" />
                           ) : isAccessible ? (
@@ -239,7 +284,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                         </div>
                         
                         {/* Step Number Badge */}
-                        <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                        <div className="absolute -top-3 -right-3 bg-accent text-accent-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold shadow-2xl border-2 border-white">
                           {index + 1}
                         </div>
                       </div>
