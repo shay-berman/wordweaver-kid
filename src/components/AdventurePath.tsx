@@ -30,7 +30,44 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
   const [showHomeworkUpload, setShowHomeworkUpload] = useState(false);
   const [showAIChallenges, setShowAIChallenges] = useState(false);
   const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
+  const [showNewItem, setShowNewItem] = useState(false);
+  const [newDiscoveredItem, setNewDiscoveredItem] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  // בית"ר ירושלים חפצים - רשימה של כל החפצים האפשריים
+  const beitarItems = [
+    { id: 1, name: "צעיף בית״ר", emoji: "🧣", description: "הצעיף הרשמי של בית״ר ירושלים!" },
+    { id: 2, name: "חולצת בית״ר", emoji: "👕", description: "החולצה הצהובה-שחורה הקלאסית!" },
+    { id: 3, name: "כדור בית״ר", emoji: "⚽", description: "כדור רגל עם הסמל של בית״ר!" },
+    { id: 4, name: "דגל בית״ר", emoji: "🏴", description: "הדגל הגדול של בית״ר לחדר!" },
+    { id: 5, name: "כרטיס משחק", emoji: "🎫", description: "כרטיס למשחק של בית״ר במלא!" },
+    { id: 6, name: "פוסטר בית״ר", emoji: "🖼️", description: "פוסטר של השחקנים של בית״ר!" },
+    { id: 7, name: "מחזיק מפתחות בית״ר", emoji: "🗝️", description: "מחזיק מפתחות עם הסמל!" },
+    { id: 8, name: "כוס בית״ר", emoji: "🏆", description: "כוס זיכרון ממשחק חשוב!" },
+    { id: 9, name: "מדבקות בית״ר", emoji: "✨", description: "מדבקות לקשט את החדר!" },
+    { id: 10, name: "שעון בית״ר", emoji: "⏰", description: "שעון קיר עם צבעי בית״ר!" }
+  ];
+
+  // שליפת החפצים שכבר התגלו מהזיכרון המקומי
+  const getDiscoveredItems = (): number[] => {
+    const saved = localStorage.getItem('beitarDiscoveredItems');
+    return saved ? JSON.parse(saved) : [];
+  };
+
+  // שמירת חפץ חדש שהתגלה
+  const saveDiscoveredItem = (itemId: number) => {
+    const discovered = getDiscoveredItems();
+    if (!discovered.includes(itemId)) {
+      discovered.push(itemId);
+      localStorage.setItem('beitarDiscoveredItems', JSON.stringify(discovered));
+    }
+  };
+
+  // קבלת החפץ הבא שעוד לא התגלה
+  const getNextUndiscoveredItem = () => {
+    const discovered = getDiscoveredItems();
+    return beitarItems.find(item => !discovered.includes(item.id));
+  };
 
   const resetProgress = () => {
     // Reset completed levels for current category
@@ -345,14 +382,14 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                  left: `${(isMobile ? 300 : 400) + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).x}px`,
                  top: `${80 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).y}px` 
                }}>
-            <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-4 rounded-2xl shadow-2xl border-4 border-yellow-400">
+            <div className="bg-gradient-to-b from-red-500 to-yellow-500 p-4 rounded-2xl shadow-2xl border-4 border-yellow-400">
               <div className="text-center">
-                <div className="text-4xl mb-2 animate-pulse">🏰</div>
+                <div className="text-4xl mb-2 animate-pulse">🏠</div>
                 <h3 className="text-base font-bold text-white mb-1">
-                  הטירה המלכותית
+                  החדר שלי
                 </h3>
                 <p className="text-white/80 text-xs">
-                  המטרה שלך! 👑
+                  גלה עוד חפצי בית"ר! ⚽
                 </p>
               </div>
             </div>
@@ -483,28 +520,84 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
           {/* Completion Castle - Enhanced Victory */}
           {playerData.completedLevels.length === selectedCategory.levels.length && (
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
-              <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 p-10 rounded-3xl shadow-2xl animate-bounce border-8 border-yellow-300 ring-4 ring-yellow-200">
+              <div className="bg-gradient-to-r from-red-400 via-yellow-400 to-red-500 p-10 rounded-3xl shadow-2xl animate-bounce border-8 border-yellow-300 ring-4 ring-yellow-200">
                 <div className="text-center">
-                  <div className="text-8xl mb-6 animate-pulse">🏰</div>
+                  <div className="text-8xl mb-6 animate-pulse">🏠</div>
                   <Trophy className="w-20 h-20 text-yellow-100 mx-auto mb-6 animate-spin" />
                   <h3 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
-                    מזל טוב! השלמת את כל המסלול!
+                    מזל טוב! הגעת לחדר שלך!
                   </h3>
                   <p className="text-white text-lg drop-shadow-md mb-6">
-                    הגעת לטירה! אתה אמיץ אמיתי! 👑
+                    גילית עוד חפץ של בית״ר ירושלים! ⚽
                   </p>
+                  
+                  {(() => {
+                    const nextItem = getNextUndiscoveredItem();
+                    if (nextItem && !newDiscoveredItem) {
+                      // גילוי חפץ חדש
+                      saveDiscoveredItem(nextItem.id);
+                      setNewDiscoveredItem(`${nextItem.emoji} ${nextItem.name}`);
+                    }
+                    
+                    const discoveredItems = getDiscoveredItems();
+                    const discoveredCount = discoveredItems.length;
+                    
+                    return (
+                      <div className="mb-6">
+                        {newDiscoveredItem && (
+                          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-4 border-2 border-white/30">
+                            <div className="text-6xl mb-3 animate-bounce">{nextItem?.emoji}</div>
+                            <h4 className="text-2xl font-bold text-white mb-2">חפץ חדש התגלה!</h4>
+                            <p className="text-white text-xl font-semibold mb-2">{nextItem?.name}</p>
+                            <p className="text-white/90 text-sm">{nextItem?.description}</p>
+                          </div>
+                        )}
+                        
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+                          <p className="text-white text-lg">
+                            🏆 איספת {discoveredCount} מתוך {beitarItems.length} חפצי בית״ר!
+                          </p>
+                          
+                          {discoveredCount > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2 justify-center">
+                              {discoveredItems.map(itemId => {
+                                const item = beitarItems.find(i => i.id === itemId);
+                                return item ? (
+                                  <span key={itemId} className="text-2xl bg-white/20 rounded-lg p-2" title={item.name}>
+                                    {item.emoji}
+                                  </span>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                          
+                          {discoveredCount === beitarItems.length && (
+                            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl">
+                              <p className="text-red-800 font-bold text-lg">
+                                🎉 איספת את כל חפצי בית״ר! אתה אוהד אמיתי! 🎉
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  
                   <div className="text-6xl animate-bounce mb-4">🎉</div>
                   
                   {/* Action Buttons */}
                   <div className="flex gap-4 justify-center">
                     <Button 
                       onClick={onBack}
-                      className="bg-white text-yellow-600 hover:bg-yellow-50 font-bold px-6 py-3 rounded-xl shadow-lg border-2 border-yellow-300"
+                      className="bg-white text-red-600 hover:bg-yellow-50 font-bold px-6 py-3 rounded-xl shadow-lg border-2 border-yellow-300"
                     >
                       🏠 חזור להתחלה
                     </Button>
                     <Button 
-                      onClick={resetProgress}
+                      onClick={() => {
+                        resetProgress();
+                        setNewDiscoveredItem(null);
+                      }}
                       variant="outline"
                       className="bg-white/20 text-white border-white hover:bg-white/30 font-bold px-6 py-3 rounded-xl shadow-lg"
                     >
