@@ -400,11 +400,14 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   {/* Location Marker with Hover Details */}
                   <HoverCard>
                     <HoverCardTrigger asChild>
-                      <div 
-                        className={`relative z-20 cursor-pointer transition-all duration-300 hover:scale-110 ${
+                      <button 
+                        className={`relative z-20 bg-transparent border-none p-0 cursor-pointer transition-all duration-300 hover:scale-110 ${
                           isCurrentPosition && !isCompleted ? 'animate-pulse' : ''
-                        } ${!isLocked ? 'hover:shadow-2xl' : ''}`}
+                        } ${!isLocked ? 'hover:shadow-2xl' : ''} ${!isLocked ? 'focus:outline-none focus:ring-4 focus:ring-primary/50' : ''}`}
                         onClick={() => !isLocked && onGameSelect(level.id)}
+                        disabled={isLocked}
+                        type="button"
+                        aria-label={`${isLocked ? 'שלב נעול' : 'התחל שלב'} ${index + 1}: ${level.title}`}
                       >
                         <div className={`w-20 h-20 rounded-full border-4 shadow-2xl flex items-center justify-center transition-all duration-300 ${
                           isCompleted 
@@ -423,10 +426,10 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                         </div>
                         
                         {/* Step Number Badge */}
-                        <div className="absolute -top-3 -right-3 bg-accent text-accent-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold shadow-2xl border-2 border-white">
+                        <div className="absolute -top-3 -right-3 bg-accent text-accent-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold shadow-2xl border-2 border-white pointer-events-none">
                           {index + 1}
                         </div>
-                      </div>
+                      </button>
                     </HoverCardTrigger>
                     
                     <HoverCardContent className="w-80 p-4 bg-background border-primary/20 shadow-2xl" side="right">
