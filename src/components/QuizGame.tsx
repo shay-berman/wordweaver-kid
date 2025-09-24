@@ -317,6 +317,63 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     }
   };
 
+  const renderQuestionWithClickableEnglish = (questionText: string) => {
+    // Look for English words in parentheses
+    const englishInParentheses = questionText.match(/\(([^)]*[a-zA-Z][^)]*)\)/);
+    
+    if (englishInParentheses) {
+      const englishWord = englishInParentheses[1].trim();
+      const beforeParentheses = questionText.substring(0, englishInParentheses.index);
+      const afterParentheses = questionText.substring(englishInParentheses.index! + englishInParentheses[0].length);
+      
+      return (
+        <span>
+          {beforeParentheses}
+          (<button
+            onClick={() => speakEnglishWord(questionText, englishWord)}
+            className="text-primary hover:text-primary-hover underline cursor-pointer mx-1 font-medium transition-colors"
+            type="button"
+          >
+            {englishWord}
+          </button>)
+          {afterParentheses}
+        </span>
+      );
+    }
+    
+    // Look for standalone English words
+    const words = questionText.split(/(\s+)/);
+    const hasEnglishWords = words.some(word => /^[a-zA-Z]+$/.test(word.trim()) && word.trim().length > 1);
+    
+    if (hasEnglishWords) {
+      return (
+        <span>
+          {words.map((word, index) => {
+            const trimmedWord = word.trim();
+            if (/^[a-zA-Z]+$/.test(trimmedWord) && trimmedWord.length > 1) {
+              return (
+                <span key={index}>
+                  <button
+                    onClick={() => speakEnglishWord(questionText, trimmedWord)}
+                    className="text-primary hover:text-primary-hover underline cursor-pointer font-medium transition-colors"
+                    type="button"
+                  >
+                    {trimmedWord}
+                  </button>
+                  {word.replace(trimmedWord, '')}
+                </span>
+              );
+            }
+            return <span key={index}>{word}</span>;
+          })}
+        </span>
+      );
+    }
+    
+    // No English words found, return regular text
+    return questionText;
+  };
+
   const playFailureSound = () => {
     try {
       const audioContext = new AudioContext();
@@ -607,7 +664,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       </CardHeader>
       
       <CardContent className="p-4 sm:p-6 pb-6">
-        <h3 className="text-lg sm:text-xl font-semibold mb-6 text-right leading-relaxed">{current.question}</h3>
+        <h3 className="text-lg sm:text-xl font-semibold mb-6 text-right leading-relaxed">
+          {renderQuestionWithClickableEnglish(current.question)}
+        </h3>
         
         {current.type === "multiple-choice" && current.options && (
           <div className="space-y-3 sm:space-y-4">
