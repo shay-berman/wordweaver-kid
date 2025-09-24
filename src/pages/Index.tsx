@@ -30,11 +30,19 @@ const Index = () => {
   const [showAIChallenges, setShowAIChallenges] = useState(false);
   const [currentAIChallenge, setCurrentAIChallenge] = useState<any>(null);
   const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
+  const [allCategories, setAllCategories] = useState<GameCategory[]>(gameCategories);
 
   useEffect(() => {
     const saved = localStorage.getItem("englishGameData");
     if (saved) {
       setPlayerData(JSON.parse(saved));
+    }
+    
+    // Load custom categories from localStorage
+    const savedCategories = localStorage.getItem("customCategories");
+    if (savedCategories) {
+      const customCategories = JSON.parse(savedCategories);
+      setAllCategories([...gameCategories, ...customCategories]);
     }
   }, []);
 
@@ -268,14 +276,14 @@ const Index = () => {
               בחר מסלול לימוד:
             </label>
             <Select value={selectedCategory.id} onValueChange={(categoryId) => {
-              const category = gameCategories.find(cat => cat.id === categoryId);
+              const category = allCategories.find(cat => cat.id === categoryId);
               if (category) setSelectedCategory(category);
             }}>
               <SelectTrigger className="w-full bg-background/80 backdrop-blur border-primary/20 hover:border-primary/40 min-h-[50px] text-right z-50">
                 <SelectValue placeholder="בחר מסלול" />
               </SelectTrigger>
               <SelectContent className="bg-background border-primary/20 shadow-xl z-50">
-                {gameCategories.map((category) => (
+                {allCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id} className="text-right cursor-pointer hover:bg-primary/10">
                     <div className="text-right">
                       <div className="font-medium">{category.title}</div>
@@ -359,7 +367,15 @@ const Index = () => {
       onBack={() => setGameStarted(false)}
       onAIChallengeSelect={setCurrentAIChallenge}
       onSimilarPathCreated={(newCategory) => {
-        // Add the new category to local state or handle it appropriately
+        // Save the new category to localStorage
+        const savedCategories = localStorage.getItem("customCategories");
+        const existingCustomCategories = savedCategories ? JSON.parse(savedCategories) : [];
+        const updatedCustomCategories = [...existingCustomCategories, newCategory];
+        localStorage.setItem("customCategories", JSON.stringify(updatedCustomCategories));
+        
+        // Update the state to include the new category
+        setAllCategories([...gameCategories, ...updatedCustomCategories]);
+        
         toast.success('מסלול חדש נוצר! עכשיו אפשר לבחור אותו מרשימת המסלולים');
         setGameStarted(false); // Go back to category selection to show new option
       }}

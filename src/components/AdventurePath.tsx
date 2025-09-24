@@ -100,7 +100,24 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
       if (data?.success && data.similarPath) {
         toast.success(data.message || 'מסלול חדש נוצר בהצלחה!');
-        onSimilarPathCreated?.(data.similarPath);
+        
+        // Convert the similar path to GameCategory format
+        const newCategory: GameCategory = {
+          id: data.similarPath.id,
+          title: data.similarPath.title,
+          description: data.similarPath.description,
+          levels: data.similarPath.levels.map((level: any) => ({
+            id: level.id,
+            title: level.title,
+            description: level.description,
+            difficulty: level.difficulty,
+            xpReward: level.xpReward,
+            unlockLevel: level.unlockLevel,
+            questions: level.questions
+          }))
+        };
+        
+        onSimilarPathCreated?.(newCategory);
         setShowCreateSimilar(false);
         setSimilarPathName("");
       } else {
