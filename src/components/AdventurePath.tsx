@@ -58,34 +58,30 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
   const currentPosition = getCurrentPosition();
 
-  // Calculate path positions for a winding map-like path
+  // Calculate path positions for a snake-like path (right to left, then down and right)
   const getPathPosition = (index: number, total: number) => {
-    const pathWidth = 120; // How wide the zigzag should be
-    const verticalSpacing = 140; // Space between levels vertically
+    const containerWidth = 600; // Available width for the path
+    const levelsPerRow = 4; // Number of levels per row
+    const verticalSpacing = 150; // Space between rows
+    const horizontalSpacing = containerWidth / (levelsPerRow + 1); // Space between levels horizontally
     
-    // Create a winding path that alternates sides and curves
-    const progress = index / Math.max(total - 1, 1);
-    const yPosition = index * verticalSpacing;
+    // Calculate which row and position in row
+    const row = Math.floor(index / levelsPerRow);
+    const positionInRow = index % levelsPerRow;
     
-    // Create a more serpentine path with curves
-    let xOffset = 0;
+    let xOffset, yOffset;
     
-    // Use sine waves to create smooth curves
-    const waveFrequency = 0.8;
-    const waveAmplitude = pathWidth;
+    if (row % 2 === 0) {
+      // Even rows: go from right to left
+      xOffset = containerWidth/2 - (positionInRow * horizontalSpacing);
+    } else {
+      // Odd rows: go from left to right
+      xOffset = -containerWidth/2 + (positionInRow * horizontalSpacing);
+    }
     
-    // Primary sine wave for the main path
-    xOffset = waveAmplitude * Math.sin(index * waveFrequency);
+    yOffset = row * verticalSpacing;
     
-    // Add secondary wave for more complexity
-    const secondaryWave = (waveAmplitude * 0.3) * Math.sin(index * waveFrequency * 2.5 + Math.PI / 3);
-    xOffset += secondaryWave;
-    
-    // Add some randomness but keep it consistent
-    const pseudoRandom = Math.sin(index * 1.234567) * (waveAmplitude * 0.2);
-    xOffset += pseudoRandom;
-    
-    return { x: xOffset, y: yPosition };
+    return { x: xOffset, y: yOffset };
   };
 
   return (
@@ -121,8 +117,8 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
         </div>
 
         {/* Adventure Map */}
-        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl overflow-x-auto" 
-             style={{ height: `${Math.max(600, selectedCategory.levels.length * 140 + 250)}px`, width: '100%', minWidth: '800px' }}>
+        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl" 
+             style={{ height: `${Math.max(400, Math.ceil(selectedCategory.levels.length / 4) * 150 + 300)}px` }}>
           {/* Map Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="w-full h-full" style={{
@@ -154,17 +150,37 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
               d={(() => {
                 const pathPoints = selectedCategory.levels.map((_, index) => {
                   const pos = getPathPosition(index, selectedCategory.levels.length);
-                  return { x: 400 + pos.x, y: 100 + pos.y };
+                  return { x: 400 + pos.x, y: 80 + pos.y };
                 });
                 
+                if (pathPoints.length === 0) return '';
+                
                 let pathData = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
+                
                 for (let i = 1; i < pathPoints.length; i++) {
                   const current = pathPoints[i];
                   const previous = pathPoints[i-1];
-                  const midX = (previous.x + current.x) / 2;
-                  const midY = (previous.y + current.y) / 2;
-                  pathData += ` Q ${midX} ${midY} ${current.x} ${current.y}`;
+                  
+                  // Check if we're at the end of a row (need to go down to next row)
+                  const currentRow = Math.floor((i-1) / 4);
+                  const nextRow = Math.floor(i / 4);
+                  
+                  if (currentRow !== nextRow) {
+                    // Add a curved path down to the next row
+                    const midY = (previous.y + current.y) / 2;
+                    pathData += ` Q ${previous.x} ${midY} ${current.x} ${current.y}`;
+                  } else {
+                    // Normal horizontal movement within the same row
+                    pathData += ` L ${current.x} ${current.y}`;
+                  }
                 }
+                
+                // Add path to castle
+                const lastPoint = pathPoints[pathPoints.length - 1];
+                const castlePos = getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1);
+                const castlePoint = { x: 400 + castlePos.x, y: 80 + castlePos.y };
+                pathData += ` Q ${lastPoint.x} ${(lastPoint.y + castlePoint.y) / 2} ${castlePoint.x} ${castlePoint.y}`;
+                
                 return pathData;
               })()}
               stroke="hsl(var(--primary))"
@@ -179,17 +195,37 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
               d={(() => {
                 const pathPoints = selectedCategory.levels.map((_, index) => {
                   const pos = getPathPosition(index, selectedCategory.levels.length);
-                  return { x: 400 + pos.x, y: 100 + pos.y };
+                  return { x: 400 + pos.x, y: 80 + pos.y };
                 });
                 
+                if (pathPoints.length === 0) return '';
+                
                 let pathData = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
+                
                 for (let i = 1; i < pathPoints.length; i++) {
                   const current = pathPoints[i];
                   const previous = pathPoints[i-1];
-                  const midX = (previous.x + current.x) / 2;
-                  const midY = (previous.y + current.y) / 2;
-                  pathData += ` Q ${midX} ${midY} ${current.x} ${current.y}`;
+                  
+                  // Check if we're at the end of a row (need to go down to next row)
+                  const currentRow = Math.floor((i-1) / 4);
+                  const nextRow = Math.floor(i / 4);
+                  
+                  if (currentRow !== nextRow) {
+                    // Add a curved path down to the next row
+                    const midY = (previous.y + current.y) / 2;
+                    pathData += ` Q ${previous.x} ${midY} ${current.x} ${current.y}`;
+                  } else {
+                    // Normal horizontal movement within the same row
+                    pathData += ` L ${current.x} ${current.y}`;
+                  }
                 }
+                
+                // Add path to castle
+                const lastPoint = pathPoints[pathPoints.length - 1];
+                const castlePos = getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1);
+                const castlePoint = { x: 400 + castlePos.x, y: 80 + castlePos.y };
+                pathData += ` Q ${lastPoint.x} ${(lastPoint.y + castlePoint.y) / 2} ${castlePoint.x} ${castlePoint.y}`;
+                
                 return pathData;
               })()}
               stroke="url(#pathGradient)"
@@ -204,8 +240,8 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
           {/* Castle Goal - At the end of the path */}
           <div className="absolute transform -translate-x-1/2 z-20" 
                style={{ 
-                 left: `${400 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length).x}px`,
-                 top: `${80 + selectedCategory.levels.length * 140}px` 
+                 left: `${400 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).x}px`,
+                 top: `${80 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).y}px` 
                }}>
             <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-4 rounded-2xl shadow-2xl border-4 border-yellow-400">
               <div className="text-center">
@@ -236,7 +272,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   className="absolute transform -translate-x-1/2 -translate-y-1/2"
                   style={{
                     left: `${400 + position.x}px`,
-                    top: `${100 + position.y}px`
+                    top: `${80 + position.y}px`
                   }}
                 >
                   {/* Character at current position */}
