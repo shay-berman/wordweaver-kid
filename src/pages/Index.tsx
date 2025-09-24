@@ -7,7 +7,7 @@ import { UserProfileCard } from "@/components/UserProfile";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Trophy, Target, User } from "lucide-react";
+import { BookOpen, Trophy, Target, User, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import heroCharacter from "@/assets/hero-character.jpg";
@@ -283,6 +283,17 @@ const Index = () => {
           <p className="text-primary-foreground/80">
             רמה {playerData.level} • {playerData.completedLevels.length} משחקים הושלמו
           </p>
+          
+          {/* XP System Explanation */}
+          <div className="mt-4 p-3 bg-white/10 rounded-lg text-sm text-right">
+            <div className="flex items-center justify-end gap-2 mb-1">
+              <span className="font-semibold">איך עובדת מערכת הניסיון?</span>
+              <Star className="w-4 h-4" />
+            </div>
+            <p className="text-primary-foreground/90">
+              בכל משחק שתשלים תזכה בנקודות ניסיון שיעזרו לך לעלות ברמה ולפתוח משחקים חדשים
+            </p>
+          </div>
         </div>
         
         {/* Category Selection */}
