@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, X, Clock, Award, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Question {
   id: string;
@@ -21,6 +24,8 @@ interface QuizGameProps {
 }
 
 export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [showResult, setShowResult] = useState(false);
@@ -32,6 +37,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [showEncouragement, setShowEncouragement] = useState(false);
   const [encouragementMessage, setEncouragementMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const musicTypes = [
@@ -250,7 +256,94 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     } else {
       const xpEarned = score * 10 + (score === questions.length ? 50 : 0);
       setGameCompleted(true);
+      saveGameResult(score, questions.length);
       onComplete(score, xpEarned);
+    }
+  };
+
+  const saveGameResult = async (finalScore: number, totalQuestions: number) => {
+    if (!user) {
+      console.log('User not logged in, skipping save');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Save game result
+      const { error: gameError } = await supabase
+        .from('game_results')
+        .insert({
+          user_id: user.id,
+          score: finalScore,
+          total_questions: totalQuestions,
+          level: 1, // You can modify this based on the selected level
+          completed_at: new Date().toISOString()
+        });
+
+      if (gameError) {
+        console.error('Error saving game result:', gameError);
+        toast({
+          title: 'שגיאה בשמירה',
+          description: 'לא הצלחנו לשמור את התוצאה',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Update or create user profile
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      const scoreToAdd = finalScore * 10;
+      
+      if (existingProfile) {
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from('user_profiles')
+          .update({
+            total_score: existingProfile.total_score + scoreToAdd,
+            games_played: existingProfile.games_played + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (updateError) {
+          console.error('Error updating profile:', updateError);
+        }
+      } else {
+        // Create new profile
+        const { error: createError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: user.id,
+            display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'שחקן חדש',
+            total_score: scoreToAdd,
+            games_played: 1,
+            current_level: 1
+          });
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+        }
+      }
+
+      toast({
+        title: 'נשמר בהצלחה!',
+        description: `התוצאה שלך נשמרה (${finalScore}/${totalQuestions})`,
+      });
+
+    } catch (error) {
+      console.error('Error saving game data:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'משהו השתבש בשמירת התוצאות',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -275,9 +368,33 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
           <div className="text-base sm:text-lg mb-6">
             <span className="text-accent font-bold">{percentage.toFixed(0)}%</span> הצלחה
           </div>
+          
+          {/* Show save status */}
+          {user && (
+            <div className="mb-4 text-sm text-muted-foreground">
+              {isSaving ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  שומר תוצאות...
+                </div>
+              ) : (
+                "התוצאות נשמרו ✓"
+              )}
+            </div>
+          )}
+          
+          {!user && (
+            <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+              <p className="text-sm text-primary">
+                התחבר כדי לשמור את התוצאות שלך! 💾
+              </p>
+            </div>
+          )}
+          
           <Button 
             onClick={onBack} 
             className="bg-gradient-hero min-h-[48px] px-6 sm:px-8 text-sm sm:text-base touch-manipulation"
+            disabled={isSaving}
           >
             חזור למשחקים
           </Button>

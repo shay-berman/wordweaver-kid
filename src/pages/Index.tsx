@@ -2,18 +2,24 @@ import { useState, useEffect } from "react";
 import { GameHeader } from "@/components/GameHeader";
 import { GameCard } from "@/components/GameCard";
 import { QuizGame } from "@/components/QuizGame";
+import { AuthModal } from "@/components/AuthModal";
+import { UserProfileCard } from "@/components/UserProfile";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Trophy, Target } from "lucide-react";
+import { BookOpen, Trophy, Target, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import heroCharacter from "@/assets/hero-character.jpg";
 
 const Index = () => {
+  const { user, loading } = useAuth();
   const [playerData, setPlayerData] = useState(initialPlayerData);
   const [currentGame, setCurrentGame] = useState<string | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameMode, setGameMode] = useState<"vocabulary" | "grammar" | "all">("all");
   const [selectedCategory, setSelectedCategory] = useState<GameCategory>(gameCategories[0]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("englishGameData");
@@ -58,10 +64,61 @@ const Index = () => {
     }
   };
 
+  // Show loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+            טוען את המשחק...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!gameStarted) {
     return (
       <div className="min-h-screen bg-gradient-background flex items-center justify-center p-4">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Login/Profile button */}
+          <div className="absolute top-4 left-4">
+            {user ? (
+              <Button
+                onClick={() => setShowProfile(!showProfile)}
+                className="bg-gradient-hero hover:shadow-glow"
+              >
+                <User className="h-4 w-4 ml-2" />
+                {user.user_metadata?.display_name || user.email?.split('@')[0] || 'פרופיל'}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setShowAuthModal(true)}
+                variant="outline"
+                className="border-primary/30 text-primary hover:bg-primary/10"
+              >
+                <User className="h-4 w-4 ml-2" />
+                התחבר
+              </Button>
+            )}
+          </div>
+
+          {/* User Profile Card */}
+          {showProfile && user && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-background rounded-lg p-6 max-w-md w-full">
+                <UserProfileCard />
+                <Button
+                  onClick={() => setShowProfile(false)}
+                  className="w-full mt-4"
+                  variant="outline"
+                >
+                  סגור
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="mb-8">
             <img 
               src={heroCharacter} 
@@ -76,6 +133,11 @@ const Index = () => {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             ברוכים הבאים למשחק ההרפתקאות באנגלית! פה תלמדו מילים חדשות, דקדוק, 
             ותשחקו משחקים מגניבים שיעזרו לכם להשתפר באנגלית.
+            {!user && (
+              <span className="block mt-4 text-primary font-semibold">
+                התחבר כדי לשמור את ההתקדמות שלך! 🎯
+              </span>
+            )}
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-3xl mx-auto">
@@ -161,6 +223,9 @@ const Index = () => {
           >
             התחל את ההרפתקה! 🚀
           </Button>
+
+          {/* Auth Modal */}
+          <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
         </div>
       </div>
     );
