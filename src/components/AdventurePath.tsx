@@ -21,6 +21,19 @@ interface AdventurePathProps {
 export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBack }: AdventurePathProps) => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
+  const resetProgress = () => {
+    // Reset completed levels for current category
+    const updatedPlayerData = {
+      ...playerData,
+      completedLevels: playerData.completedLevels.filter(levelId => 
+        !selectedCategory.levels.some(level => level.id === levelId)
+      )
+    };
+    localStorage.setItem("englishGameData", JSON.stringify(updatedPlayerData));
+    // Refresh the page to update the state
+    window.location.reload();
+  };
+
   // Find the player's current position in the adventure
   const getCurrentPosition = () => {
     // Find the first uncompleted level that the player can access
@@ -78,9 +91,18 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <Button onClick={onBack} variant="outline">
-            חזור
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={onBack} variant="outline">
+              חזור
+            </Button>
+            <Button 
+              onClick={resetProgress} 
+              variant="outline"
+              className="text-orange-600 border-orange-300 hover:bg-orange-50"
+            >
+              🔄 התחל מחדש
+            </Button>
+          </div>
           <div className="text-center flex items-center gap-2">
             <Map className="w-8 h-8 text-primary" />
             <div>
@@ -252,11 +274,11 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                       🏠 חזור להתחלה
                     </Button>
                     <Button 
-                      onClick={onBack}
+                      onClick={resetProgress}
                       variant="outline"
                       className="bg-white/20 text-white border-white hover:bg-white/30 font-bold px-6 py-3 rounded-xl shadow-lg"
                     >
-                      🗺️ בחר מסלול אחר
+                      🔄 התחל מסלול מחדש
                     </Button>
                   </div>
                 </div>
