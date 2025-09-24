@@ -252,6 +252,71 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     }
   };
 
+  const speakEnglishWord = async (questionText: string, correctAnswer: string) => {
+    try {
+      // Extract English word from question or use correct answer
+      let englishWord = '';
+      
+      // Try to find English word in parentheses in the question
+      const englishMatch = questionText.match(/\(([^)]*[a-zA-Z][^)]*)\)/);
+      if (englishMatch) {
+        englishWord = englishMatch[1].trim();
+      } else if (/^[a-zA-Z\s]+$/.test(correctAnswer)) {
+        // If correct answer is in English
+        englishWord = correctAnswer;
+      } else {
+        // Try to find English word in the question text
+        const words = questionText.split(/[\s"'״"]+/);
+        for (const word of words) {
+          if (/^[a-zA-Z]+$/.test(word) && word.length > 1) {
+            englishWord = word;
+            break;
+          }
+        }
+      }
+
+      if (!englishWord) {
+        console.log('No English word found to pronounce');
+        return;
+      }
+
+      console.log('Speaking English word:', englishWord);
+
+      // Call the text-to-speech function
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { 
+          text: englishWord,
+          voice: 'nova' // Clear female voice for pronunciation
+        }
+      });
+
+      if (error) {
+        console.error('TTS Error:', error);
+        return;
+      }
+
+      // Play the audio
+      if (data?.audioContent) {
+        const audioBlob = new Blob([
+          new Uint8Array(atob(data.audioContent).split('').map(c => c.charCodeAt(0)))
+        ], { type: 'audio/mp3' });
+        
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        audio.play().catch(error => {
+          console.log('Audio playback failed:', error);
+        });
+      }
+    } catch (error) {
+      console.error('Error speaking English word:', error);
+    }
+  };
+
   const playFailureSound = () => {
     try {
       const audioContext = new AudioContext();
@@ -296,6 +361,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       setScore(score + 1);
       setShowConfetti(true);
       playSuccessSound();
+      
+      // Speak the English word pronunciation
+      speakEnglishWord(current.question, current.correctAnswer);
       
       // Track consecutive correct answers
       const newConsecutiveCorrect = consecutiveCorrect + 1;
