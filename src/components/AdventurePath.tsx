@@ -38,22 +38,15 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
   // Find the player's current position in the adventure
   const getCurrentPosition = () => {
-    // Find the first uncompleted level that the player can access
+    // Find the first uncompleted level in sequential order
     for (let i = 0; i < selectedCategory.levels.length; i++) {
       const level = selectedCategory.levels[i];
-      if (!playerData.completedLevels.includes(level.id) && 
-          level.unlockLevel <= playerData.level) {
+      if (!playerData.completedLevels.includes(level.id)) {
         return i;
       }
     }
-    // If all accessible levels are completed, show at the last completed level
-    for (let i = selectedCategory.levels.length - 1; i >= 0; i--) {
-      const level = selectedCategory.levels[i];
-      if (playerData.completedLevels.includes(level.id)) {
-        return i;
-      }
-    }
-    return 0; // Default to first level
+    // If all levels are completed, show at the last level
+    return selectedCategory.levels.length - 1;
   };
 
   const currentPosition = getCurrentPosition();
@@ -260,7 +253,8 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
           <div className="relative z-10">
             {selectedCategory.levels.map((level, index) => {
               const isCompleted = playerData.completedLevels.includes(level.id);
-              const isLocked = level.unlockLevel > playerData.level;
+              // Simple sequential unlock: can only access if previous level is completed (or it's the first level)
+              const isLocked = index > 0 && !playerData.completedLevels.includes(selectedCategory.levels[index - 1].id);
               const isCurrentPosition = index === currentPosition;
               const isAccessible = !isLocked || isCompleted;
               
