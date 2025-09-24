@@ -329,13 +329,15 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       return (
         <span>
           {beforeParentheses}
-          (<button
-            onClick={() => speakEnglishWord(questionText, englishWord)}
-            className="text-primary hover:text-primary-hover underline cursor-pointer mx-1 font-medium transition-colors"
-            type="button"
-          >
-            {englishWord}
-          </button>)
+           (<button
+             onClick={() => speakEnglishWord(questionText, englishWord)}
+             className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200 cursor-pointer mx-1 font-medium transition-all duration-200 inline-flex items-center gap-1"
+             type="button"
+             title="לחץ לשמיעת ההגייה"
+           >
+             {englishWord}
+             <span className="text-xs">🔊</span>
+           </button>)
           {afterParentheses}
         </span>
       );
@@ -355,10 +357,12 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
                 <span key={index}>
                   <button
                     onClick={() => speakEnglishWord(questionText, trimmedWord)}
-                    className="text-primary hover:text-primary-hover underline cursor-pointer font-medium transition-colors"
+                    className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200 cursor-pointer font-medium transition-all duration-200 inline-flex items-center gap-1"
                     type="button"
+                    title="לחץ לשמיעת ההגייה"
                   >
                     {trimmedWord}
+                    <span className="text-xs">🔊</span>
                   </button>
                   {word.replace(trimmedWord, '')}
                 </span>
