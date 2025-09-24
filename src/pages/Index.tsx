@@ -67,17 +67,20 @@ const Index = () => {
       const currentLevel = playerData.level;
       const requiredLevel = game.unlockLevel;
       const currentXP = playerData.xp;
+      const xpToNext = playerData.xpToNext;
       
       // Calculate total XP needed to reach the required level
       let totalXpNeeded = 0;
-      for (let level = currentLevel; level < requiredLevel; level++) {
-        totalXpNeeded += (level + 1) * 100; // Each level requires (level+1) * 100 XP
+      
+      // First, complete current level
+      totalXpNeeded += xpToNext - currentXP;
+      
+      // Then add XP for all intermediate levels
+      for (let level = currentLevel + 1; level < requiredLevel; level++) {
+        totalXpNeeded += level * 100; // Each level requires level * 100 XP
       }
       
-      // Subtract current XP in this level
-      const xpNeeded = totalXpNeeded - currentXP;
-      
-      toast.error(`המשחק נעול 🔒 - צריך להגיע לרמה ${requiredLevel}. חסר לך עוד ${xpNeeded} נקודות ניסיון!`);
+      toast.error(`המשחק נעול 🔒 - צריך להגיע לרמה ${requiredLevel}. חסר לך עוד ${totalXpNeeded} נקודות ניסיון!`);
     }
   };
 
