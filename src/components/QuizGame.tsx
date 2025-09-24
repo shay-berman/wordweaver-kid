@@ -329,14 +329,13 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       return (
         <span>
           {beforeParentheses}
-           (<button
+          (<button
              onClick={() => speakEnglishWord(questionText, englishWord)}
-             className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200 cursor-pointer mx-1 font-medium transition-all duration-200 inline-flex items-center gap-1"
+             className="text-blue-600 hover:text-blue-800 underline cursor-pointer mx-1 font-medium transition-colors bg-transparent border-0 p-0"
              type="button"
              title="לחץ לשמיעת ההגייה"
            >
              {englishWord}
-             <span className="text-xs">🔊</span>
            </button>)
           {afterParentheses}
         </span>
@@ -346,6 +345,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     // Look for standalone English words with improved regex to handle punctuation
     const words = questionText.split(/(\s+)/);
     const processedWords: JSX.Element[] = [];
+    let hasEnglishWords = false;
     
     words.forEach((word, index) => {
       // Match English words, potentially with punctuation at the end
@@ -354,17 +354,17 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       if (englishMatch && englishMatch[1].length > 1) {
         const englishWord = englishMatch[1];
         const punctuation = englishMatch[2];
+        hasEnglishWords = true;
         
         processedWords.push(
           <span key={index}>
             <button
               onClick={() => speakEnglishWord(questionText, englishWord)}
-              className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200 cursor-pointer font-medium transition-all duration-200 inline-flex items-center gap-1"
+              className="text-blue-600 hover:text-blue-800 underline cursor-pointer font-medium transition-colors bg-transparent border-0 p-0"
               type="button"
               title="לחץ לשמיעת ההגייה"
             >
               {englishWord}
-              <span className="text-xs">🔊</span>
             </button>
             {punctuation}
           </span>
@@ -372,12 +372,6 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       } else {
         processedWords.push(<span key={index}>{word}</span>);
       }
-    });
-    
-    // Check if we found any English words
-    const hasEnglishWords = words.some(word => {
-      const englishMatch = word.match(/^[a-zA-Z]+/);
-      return englishMatch && englishMatch[0].length > 1;
     });
     
     if (hasEnglishWords) {
@@ -678,9 +672,18 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       </CardHeader>
       
       <CardContent className="p-4 sm:p-6 pb-6">
-        <h3 className="text-lg sm:text-xl font-semibold mb-6 text-right leading-relaxed">
-          {renderQuestionWithClickableEnglish(current.question)}
-        </h3>
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => speakEnglishWord(current.question, '')}
+            className="flex-shrink-0 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+            title="השמע את המילה באנגלית"
+          >
+            <Volume2 size={20} />
+          </button>
+          <h3 className="text-lg sm:text-xl font-semibold text-right leading-relaxed flex-1">
+            {renderQuestionWithClickableEnglish(current.question)}
+          </h3>
+        </div>
         
         {current.type === "multiple-choice" && current.options && (
           <div className="space-y-3 sm:space-y-4">
