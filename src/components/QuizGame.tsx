@@ -295,7 +295,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const scoreToAdd = finalScore * 10;
       

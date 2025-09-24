@@ -5,11 +5,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
-import type { Database } from '@/integrations/supabase/types'
-
-type UserProfile = Database['public']['Tables']['user_profiles']['Row']
-type GameResult = Database['public']['Tables']['game_results']['Row']
+import type { Tables } from '@/integrations/supabase/types'
 import { Trophy, Star, Target, LogOut } from 'lucide-react'
+
+type UserProfile = Tables<'user_profiles'>
+type GameResult = Tables<'game_results'>
 
 export const UserProfileCard: React.FC = () => {
   const { user, signOut } = useAuth()
@@ -32,7 +32,7 @@ export const UserProfileCard: React.FC = () => {
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileData) {
         setProfile(profileData)
