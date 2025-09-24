@@ -37,12 +37,17 @@ const Index = () => {
     localStorage.setItem("englishGameData", JSON.stringify(data));
   };
 
-  const handleGameComplete = (gameId: string, score: number, xpEarned: number) => {
+  const handleGameComplete = (gameId: string, score: number, xpEarned: number, totalQuestions: number) => {
+    const percentage = (score / totalQuestions) * 100;
+    const passThreshold = 70; // צריך לקבל לפחות 70% כדי לעבור
+    
     const newPlayerData = {
       ...playerData,
       xp: playerData.xp + xpEarned,
       score: playerData.score + score * 10,
-      completedLevels: [...playerData.completedLevels, gameId]
+      completedLevels: percentage >= passThreshold 
+        ? [...playerData.completedLevels, gameId]
+        : playerData.completedLevels
     };
 
     // Level up logic
@@ -56,7 +61,11 @@ const Index = () => {
     savePlayerData(newPlayerData);
     setCurrentGame(null);
     
-    toast.success(`כל הכבוד! זכית ב-${xpEarned} נקודות ניסיון! ⭐`);
+    if (percentage >= passThreshold) {
+      toast.success(`כל הכבוד! עברת את השלב עם ${percentage.toFixed(0)}%! זכית ב-${xpEarned} נקודות ניסיון! ⭐`);
+    } else {
+      toast.error(`צריך לפחות ${passThreshold}% כדי לעבור. קיבלת ${percentage.toFixed(0)}%. נסה שוב! 🔄`);
+    }
   };
 
   const startGame = (gameId: string) => {
@@ -223,7 +232,7 @@ const Index = () => {
           <GameHeader {...playerData} />
           <QuizGame
             questions={currentGameData.questions}
-            onComplete={(score, xpEarned) => handleGameComplete(currentGame, score, xpEarned)}
+            onComplete={(score, xpEarned) => handleGameComplete(currentGame, score, xpEarned, currentGameData.questions.length)}
             onBack={() => setCurrentGame(null)}
           />
         </div>
