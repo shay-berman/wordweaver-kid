@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase, UserProfile, GameResult } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
+import type { Database } from '@/integrations/supabase/types'
+
+type UserProfile = Database['public']['Tables']['user_profiles']['Row']
+type GameResult = Database['public']['Tables']['game_results']['Row']
 import { Trophy, Star, Target, LogOut } from 'lucide-react'
 
 export const UserProfileCard: React.FC = () => {

@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, X, Clock, Award, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Question {
