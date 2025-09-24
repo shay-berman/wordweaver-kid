@@ -8,6 +8,7 @@ import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Lock, Upload,
 import { GameCategory } from '@/data/gameData';
 import { HomeworkUpload } from './HomeworkUpload';
 import { AIGeneratedChallenges } from './AIGeneratedChallenges';
+import { useIsMobile } from '@/hooks/use-mobile';
 import childCharacter from '@/assets/child-character.png';
 
 interface AdventurePathProps {
@@ -29,6 +30,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
   const [showHomeworkUpload, setShowHomeworkUpload] = useState(false);
   const [showAIChallenges, setShowAIChallenges] = useState(false);
   const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
+  const isMobile = useIsMobile();
 
   const resetProgress = () => {
     // Reset completed levels for current category
@@ -58,30 +60,40 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
   const currentPosition = getCurrentPosition();
 
-  // Calculate path positions for a snake-like path (right to left, then down and right)
+  // Calculate path positions - vertical for mobile, snake-like for desktop
   const getPathPosition = (index: number, total: number) => {
-    const containerWidth = 600; // Available width for the path
-    const levelsPerRow = 4; // Number of levels per row
-    const verticalSpacing = 150; // Space between rows
-    const horizontalSpacing = containerWidth / (levelsPerRow + 1); // Space between levels horizontally
-    
-    // Calculate which row and position in row
-    const row = Math.floor(index / levelsPerRow);
-    const positionInRow = index % levelsPerRow;
-    
-    let xOffset, yOffset;
-    
-    if (row % 2 === 0) {
-      // Even rows: go from right to left
-      xOffset = containerWidth/2 - (positionInRow * horizontalSpacing);
+    if (isMobile) {
+      // Mobile: simple vertical layout from top to bottom
+      const verticalSpacing = 120; // Space between levels
+      const xOffset = 0; // Center horizontally
+      const yOffset = index * verticalSpacing;
+      
+      return { x: xOffset, y: yOffset };
     } else {
-      // Odd rows: go from left to right
-      xOffset = -containerWidth/2 + (positionInRow * horizontalSpacing);
+      // Desktop: snake-like path (right to left, then down and right)
+      const containerWidth = 600; // Available width for the path
+      const levelsPerRow = 4; // Number of levels per row
+      const verticalSpacing = 150; // Space between rows
+      const horizontalSpacing = containerWidth / (levelsPerRow + 1); // Space between levels horizontally
+      
+      // Calculate which row and position in row
+      const row = Math.floor(index / levelsPerRow);
+      const positionInRow = index % levelsPerRow;
+      
+      let xOffset, yOffset;
+      
+      if (row % 2 === 0) {
+        // Even rows: go from right to left
+        xOffset = containerWidth/2 - (positionInRow * horizontalSpacing);
+      } else {
+        // Odd rows: go from left to right
+        xOffset = -containerWidth/2 + (positionInRow * horizontalSpacing);
+      }
+      
+      yOffset = row * verticalSpacing;
+      
+      return { x: xOffset, y: yOffset };
     }
-    
-    yOffset = row * verticalSpacing;
-    
-    return { x: xOffset, y: yOffset };
   };
 
   return (
@@ -193,7 +205,11 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
         {/* Adventure Map */}
         <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl" 
-             style={{ height: `${Math.max(400, Math.ceil(selectedCategory.levels.length / 4) * 150 + 300)}px` }}>
+             style={{ 
+               height: isMobile 
+                 ? `${Math.max(400, selectedCategory.levels.length * 120 + 300)}px`
+                 : `${Math.max(400, Math.ceil(selectedCategory.levels.length / 4) * 150 + 300)}px` 
+             }}>
           {/* Map Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="w-full h-full" style={{
@@ -236,17 +252,22 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   const current = pathPoints[i];
                   const previous = pathPoints[i-1];
                   
-                  // Check if we're at the end of a row (need to go down to next row)
-                  const currentRow = Math.floor((i-1) / 4);
-                  const nextRow = Math.floor(i / 4);
-                  
-                  if (currentRow !== nextRow) {
-                    // Add a curved path down to the next row
-                    const midY = (previous.y + current.y) / 2;
-                    pathData += ` Q ${previous.x} ${midY} ${current.x} ${current.y}`;
-                  } else {
-                    // Normal horizontal movement within the same row
+                  if (isMobile) {
+                    // Mobile: simple straight line down
                     pathData += ` L ${current.x} ${current.y}`;
+                  } else {
+                    // Desktop: check if we're at the end of a row (need to go down to next row)
+                    const currentRow = Math.floor((i-1) / 4);
+                    const nextRow = Math.floor(i / 4);
+                    
+                    if (currentRow !== nextRow) {
+                      // Add a curved path down to the next row
+                      const midY = (previous.y + current.y) / 2;
+                      pathData += ` Q ${previous.x} ${midY} ${current.x} ${current.y}`;
+                    } else {
+                      // Normal horizontal movement within the same row
+                      pathData += ` L ${current.x} ${current.y}`;
+                    }
                   }
                 }
                 
@@ -281,17 +302,22 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   const current = pathPoints[i];
                   const previous = pathPoints[i-1];
                   
-                  // Check if we're at the end of a row (need to go down to next row)
-                  const currentRow = Math.floor((i-1) / 4);
-                  const nextRow = Math.floor(i / 4);
-                  
-                  if (currentRow !== nextRow) {
-                    // Add a curved path down to the next row
-                    const midY = (previous.y + current.y) / 2;
-                    pathData += ` Q ${previous.x} ${midY} ${current.x} ${current.y}`;
-                  } else {
-                    // Normal horizontal movement within the same row
+                  if (isMobile) {
+                    // Mobile: simple straight line down
                     pathData += ` L ${current.x} ${current.y}`;
+                  } else {
+                    // Desktop: check if we're at the end of a row (need to go down to next row)
+                    const currentRow = Math.floor((i-1) / 4);
+                    const nextRow = Math.floor(i / 4);
+                    
+                    if (currentRow !== nextRow) {
+                      // Add a curved path down to the next row
+                      const midY = (previous.y + current.y) / 2;
+                      pathData += ` Q ${previous.x} ${midY} ${current.x} ${current.y}`;
+                    } else {
+                      // Normal horizontal movement within the same row
+                      pathData += ` L ${current.x} ${current.y}`;
+                    }
                   }
                 }
                 
