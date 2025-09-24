@@ -196,6 +196,31 @@ const Index = () => {
             )}
           </p>
           
+          {/* Course Selection Dropdown */}
+          <div className="mb-8 max-w-md mx-auto">
+            <label className="block text-sm font-medium mb-2 text-muted-foreground">
+              בחר מסלול לימוד:
+            </label>
+            <Select value={selectedCategory.id} onValueChange={(categoryId) => {
+              const category = gameCategories.find(cat => cat.id === categoryId);
+              if (category) setSelectedCategory(category);
+            }}>
+              <SelectTrigger className="w-full bg-background/80 backdrop-blur border-primary/20 hover:border-primary/40 min-h-[50px] text-right z-50">
+                <SelectValue placeholder="בחר מסלול" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-primary/20 shadow-xl z-50">
+                {gameCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id} className="text-right cursor-pointer hover:bg-primary/10">
+                    <div className="text-right">
+                      <div className="font-medium">{category.title}</div>
+                      <div className="text-sm text-muted-foreground">{category.description}</div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           
           <Button 
             onClick={() => {
