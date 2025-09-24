@@ -168,6 +168,26 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     };
   }, [musicType]);
 
+  // Handle Enter key press
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        if (showResult) {
+          // If result is shown, go to next question
+          nextQuestion();
+        } else if (selectedAnswer) {
+          // If answer is selected but result not shown yet, submit answer
+          handleAnswer();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [showResult, selectedAnswer, currentQuestion]);
+
   useEffect(() => {
     if (timeLeft > 0 && !showResult && !gameCompleted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);

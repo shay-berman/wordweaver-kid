@@ -62,8 +62,22 @@ const Index = () => {
     const game = selectedCategory.levels.find(g => g.id === gameId);
     if (game && (game.unlockLevel <= playerData.level || playerData.completedLevels.includes(gameId))) {
       setCurrentGame(gameId);
-    } else {
-      toast.error(`צריך להגיע לרמה ${game?.unlockLevel} כדי לפתוח את המשחק הזה`);
+    } else if (game) {
+      // Calculate how many XP points are needed
+      const currentLevel = playerData.level;
+      const requiredLevel = game.unlockLevel;
+      const currentXP = playerData.xp;
+      
+      // Calculate total XP needed to reach the required level
+      let totalXpNeeded = 0;
+      for (let level = currentLevel; level < requiredLevel; level++) {
+        totalXpNeeded += (level + 1) * 100; // Each level requires (level+1) * 100 XP
+      }
+      
+      // Subtract current XP in this level
+      const xpNeeded = totalXpNeeded - currentXP;
+      
+      toast.error(`המשחק נעול 🔒 - צריך להגיע לרמה ${requiredLevel}. חסר לך עוד ${xpNeeded} נקודות ניסיון!`);
     }
   };
 
