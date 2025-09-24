@@ -358,6 +358,11 @@ const Index = () => {
       onGameSelect={startGame}
       onBack={() => setGameStarted(false)}
       onAIChallengeSelect={setCurrentAIChallenge}
+      onSimilarPathCreated={(newCategory) => {
+        // Add the new category to local state or handle it appropriately
+        toast.success('מסלול חדש נוצר! עכשיו אפשר לבחור אותו מרשימת המסלולים');
+        setGameStarted(false); // Go back to category selection to show new option
+      }}
     />
   );
 };

@@ -2,3 +2,6 @@ project_id = "pimnuaxlznsaikxhsayc"
 
 [functions.analyze-homework-image]
 verify_jwt = true
+
+[functions.create-similar-path]
+verify_jwt = false

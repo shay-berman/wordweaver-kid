@@ -4,8 +4,11 @@ import { Button } from './ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Lock, Upload, Brain, BookOpen } from 'lucide-react';
+import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Lock, Upload, Brain, BookOpen, Plus } from 'lucide-react';
 import { GameCategory } from '@/data/gameData';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Input } from './ui/input';
 import { HomeworkUpload } from './HomeworkUpload';
 import { AIGeneratedChallenges } from './AIGeneratedChallenges';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -23,15 +26,19 @@ interface AdventurePathProps {
   onGameSelect: (gameId: string) => void;
   onBack: () => void;
   onAIChallengeSelect?: (challenge: any) => void;
+  onSimilarPathCreated?: (newCategory: GameCategory) => void;
 }
 
-export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBack, onAIChallengeSelect }: AdventurePathProps) => {
+export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBack, onAIChallengeSelect, onSimilarPathCreated }: AdventurePathProps) => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [showHomeworkUpload, setShowHomeworkUpload] = useState(false);
   const [showAIChallenges, setShowAIChallenges] = useState(false);
   const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
   const [showNewItem, setShowNewItem] = useState(false);
   const [newDiscoveredItem, setNewDiscoveredItem] = useState<string | null>(null);
+  const [showCreateSimilar, setShowCreateSimilar] = useState(false);
+  const [similarPathName, setSimilarPathName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const isMobile = useIsMobile();
 
   // בית"ר ירושלים חפצים - רשימה של כל החפצים האפשריים
@@ -67,6 +74,44 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
   const getNextUndiscoveredItem = () => {
     const discovered = getDiscoveredItems();
     return beitarItems.find(item => !discovered.includes(item.id));
+  };
+
+  const createSimilarPath = async () => {
+    if (!similarPathName.trim()) {
+      toast.error('יש להזין שם למסלול החדש');
+      return;
+    }
+
+    setIsCreating(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-similar-path', {
+        body: {
+          categoryData: selectedCategory,
+          pathName: similarPathName.trim()
+        }
+      });
+
+      if (error) {
+        console.error('Error creating similar path:', error);
+        toast.error('שגיאה ביצירת המסלול החדש');
+        return;
+      }
+
+      if (data?.success && data.similarPath) {
+        toast.success(data.message || 'מסלול חדש נוצר בהצלחה!');
+        onSimilarPathCreated?.(data.similarPath);
+        setShowCreateSimilar(false);
+        setSimilarPathName("");
+      } else {
+        toast.error('שגיאה ביצירת המסלול החדש');
+      }
+    } catch (error) {
+      console.error('Error creating similar path:', error);
+      toast.error('שגיאה ביצירת המסלול החדש');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const resetProgress = () => {
@@ -148,6 +193,13 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
               className="text-orange-600 border-orange-300 hover:bg-orange-50"
             >
               🔄 התחל מחדש
+            </Button>
+            <Button 
+              onClick={() => setShowCreateSimilar(true)} 
+              variant="outline"
+              className="text-green-600 border-green-300 hover:bg-green-50"
+            >
+              ➕ צור מסלול דומה
             </Button>
           </div>
           <div className="text-center flex items-center gap-2">
@@ -236,6 +288,43 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
               >
                 סגור
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Create Similar Path Modal */}
+        {showCreateSimilar && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4">צור מסלול דומה</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                יצירת מסלול חדש על בסיס "{selectedCategory.title}" עם מילים דומות וקרובות במשמעות
+              </p>
+              <Input
+                placeholder="שם המסלול החדש"
+                value={similarPathName}
+                onChange={(e) => setSimilarPathName(e.target.value)}
+                className="mb-4"
+              />
+              <div className="flex gap-3">
+                <Button
+                  onClick={createSimilarPath}
+                  disabled={!similarPathName.trim() || isCreating}
+                  className="flex-1"
+                >
+                  {isCreating ? "יוצר..." : "צור מסלול"}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowCreateSimilar(false);
+                    setSimilarPathName("");
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  ביטול
+                </Button>
+              </div>
             </div>
           </div>
         )}
