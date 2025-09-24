@@ -58,8 +58,8 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
   // Calculate path positions for a winding map-like path
   const getPathPosition = (index: number, total: number) => {
-    const pathWidth = 80; // How wide the zigzag should be
-    const verticalSpacing = 200; // Space between levels vertically
+    const pathWidth = 60; // How wide the zigzag should be
+    const verticalSpacing = 120; // Space between levels vertically
     
     // Create a winding path that alternates sides and curves
     const progress = index / (total - 1);
@@ -119,7 +119,8 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
         </div>
 
         {/* Adventure Map */}
-        <div className="relative min-h-[800px] bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-8 shadow-2xl">
+        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl" 
+             style={{ height: `${Math.max(600, selectedCategory.levels.length * 120 + 200)}px` }}>
           {/* Map Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="w-full h-full" style={{
@@ -156,15 +157,16 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
             />
           </svg>
           
-          {/* Castle Goal - Always Visible */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-            <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-6 rounded-2xl shadow-2xl border-4 border-yellow-400">
+          {/* Castle Goal - At the end of the path */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 z-20" 
+               style={{ top: `${80 + selectedCategory.levels.length * 120}px` }}>
+            <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-4 rounded-2xl shadow-2xl border-4 border-yellow-400">
               <div className="text-center">
-                <div className="text-5xl mb-2 animate-pulse">🏰</div>
-                <h3 className="text-lg font-bold text-white mb-1">
+                <div className="text-4xl mb-2 animate-pulse">🏰</div>
+                <h3 className="text-base font-bold text-white mb-1">
                   הטירה המלכותית
                 </h3>
-                <p className="text-white/80 text-sm">
+                <p className="text-white/80 text-xs">
                   המטרה שלך! 👑
                 </p>
               </div>
@@ -192,14 +194,14 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                 >
                   {/* Character at current position */}
                   {isCurrentPosition && !isCompleted && (
-                    <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-30">
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-30">
                       <div className="relative">
                         <img 
                           src={childCharacter} 
                           alt="Adventure Character" 
-                          className="w-20 h-20 rounded-full shadow-xl animate-bounce border-4 border-primary bg-white"
+                          className="w-16 h-16 rounded-full shadow-xl animate-bounce border-4 border-primary bg-white"
                         />
-                        <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full p-1 text-xs animate-pulse">
+                        <div className="absolute -top-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 text-xs animate-pulse">
                           🗺️
                         </div>
                       </div>
@@ -234,7 +236,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   </div>
 
                   {/* Game Card */}
-                  <div className={`mt-6 w-72 ${isCurrentPosition && !isCompleted ? 'ring-4 ring-primary/50 ring-offset-2' : ''}`}>
+                  <div className={`mt-4 w-64 ${isCurrentPosition && !isCompleted ? 'ring-4 ring-primary/50 ring-offset-2' : ''}`}>
                     <GameCard
                       title={level.title}
                       description={level.description}
