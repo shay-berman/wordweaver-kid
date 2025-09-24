@@ -26,6 +26,25 @@ interface QuizGameProps {
 export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Shuffle function
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Shuffle questions and their options on first load
+  const [shuffledQuestions] = useState(() => {
+    return shuffleArray(questions.map(q => ({
+      ...q,
+      options: q.options ? shuffleArray(q.options) : q.options
+    })));
+  });
+  
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [showResult, setShowResult] = useState(false);
@@ -192,10 +211,10 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     if (timeLeft > 0 && !showResult && !gameCompleted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !showResult && questions.length > 0) {
+    } else if (timeLeft === 0 && !showResult && shuffledQuestions.length > 0) {
       handleAnswer();
     }
-  }, [timeLeft, showResult, gameCompleted, questions.length]);
+  }, [timeLeft, showResult, gameCompleted, shuffledQuestions.length]);
 
   const playSuccessSound = () => {
     try {
@@ -234,7 +253,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
 
   const handleAnswer = (answer?: string) => {
     const answerToCheck = answer || selectedAnswer;
-    const isCorrect = answerToCheck === questions[currentQuestion].correctAnswer;
+    const isCorrect = answerToCheck === shuffledQuestions[currentQuestion].correctAnswer;
     if (answer) {
       setSelectedAnswer(answer);
     }
@@ -272,15 +291,15 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   };
 
   const nextQuestion = () => {
-    if (currentQuestion + 1 < questions.length) {
+    if (currentQuestion + 1 < shuffledQuestions.length) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer("");
       setShowResult(false);
       setTimeLeft(30);
     } else {
-      const xpEarned = score * 10 + (score === questions.length ? 50 : 0);
+      const xpEarned = score * 10 + (score === shuffledQuestions.length ? 50 : 0);
       setGameCompleted(true);
-      saveGameResult(score, questions.length);
+      saveGameResult(score, shuffledQuestions.length);
       onComplete(score, xpEarned);
     }
   };
@@ -375,19 +394,19 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     setMusicType((prev) => (prev + 1) % musicTypes.length);
   };
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
-  const current = questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+  const current = shuffledQuestions[currentQuestion];
   const isCorrect = selectedAnswer === current.correctAnswer;
 
   if (gameCompleted) {
-    const percentage = (score / questions.length) * 100;
+    const percentage = (score / shuffledQuestions.length) * 100;
     return (
       <Card className="max-w-2xl mx-auto">
         <CardContent className="p-6 sm:p-8 text-center">
           <Award className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-accent animate-bounce-gentle" />
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">כל הכבוד!</h2>
           <p className="text-lg sm:text-xl mb-6 leading-relaxed">
-            ענית נכון על {score} מתוך {questions.length} שאלות
+            ענית נכון על {score} מתוך {shuffledQuestions.length} שאלות
           </p>
           <div className="text-base sm:text-lg mb-6">
             <span className="text-accent font-bold">{percentage.toFixed(0)}%</span> הצלחה
@@ -460,7 +479,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       <Card className="max-w-2xl mx-auto mb-6">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
-          <CardTitle className="text-base sm:text-lg">שאלה {currentQuestion + 1} מתוך {questions.length}</CardTitle>
+          <CardTitle className="text-base sm:text-lg">שאלה {currentQuestion + 1} מתוך {shuffledQuestions.length}</CardTitle>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
