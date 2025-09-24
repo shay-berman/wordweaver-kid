@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { CheckCircle, X, Clock, Award, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +48,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const [questionAnswers, setQuestionAnswers] = useState<('correct' | 'incorrect' | null)[]>(() => 
+    new Array(questions.length).fill(null)
+  );
   const [timeLeft, setTimeLeft] = useState(30);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [musicType, setMusicType] = useState(0); // 0 = off, 1-4 = different songs
@@ -422,6 +424,12 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     if (answer) {
       setSelectedAnswer(answer);
     }
+    
+    // Update question answers state
+    const newQuestionAnswers = [...questionAnswers];
+    newQuestionAnswers[currentQuestion] = isCorrect ? 'correct' : 'incorrect';
+    setQuestionAnswers(newQuestionAnswers);
+    
     if (isCorrect) {
       setScore(score + 1);
       setShowConfetti(true);
@@ -668,7 +676,30 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
             </Badge>
           </div>
         </div>
-        <Progress value={progress} className="h-2" />
+        <div className="flex items-center justify-center gap-2 px-2 py-3">
+          {shuffledQuestions.map((_, index) => (
+            <div
+              key={index}
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border-2 transition-all ${
+                index === currentQuestion
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : questionAnswers[index] === 'correct'
+                  ? 'bg-green-500 text-white border-green-500'
+                  : questionAnswers[index] === 'incorrect'
+                  ? 'bg-red-500 text-white border-red-500'
+                  : 'bg-gray-100 text-gray-500 border-gray-300'
+              }`}
+            >
+              {questionAnswers[index] === 'correct' ? (
+                <CheckCircle className="w-4 h-4" />
+              ) : questionAnswers[index] === 'incorrect' ? (
+                <X className="w-4 h-4" />
+              ) : (
+                index + 1
+              )}
+            </div>
+          ))}
+        </div>
       </CardHeader>
       
       <CardContent className="p-4 sm:p-6 pb-6">
