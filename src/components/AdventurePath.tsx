@@ -3,7 +3,7 @@ import { GameCard } from './GameCard';
 import { Button } from './ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import { Badge } from './ui/badge';
-import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Clock } from 'lucide-react';
+import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Lock } from 'lucide-react';
 import { GameCategory } from '@/data/gameData';
 import childCharacter from '@/assets/child-character.png';
 
@@ -309,7 +309,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                           ) : isAccessible ? (
                             <MapPin className="w-8 h-8" />
                           ) : (
-                            <Clock className="w-8 h-8" />
+                            <Lock className="w-8 h-8" />
                           )}
                         </div>
                         
@@ -326,7 +326,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
                             {isCompleted && <CheckCircle className="w-5 h-5 text-success" />}
-                            {isLocked && <Clock className="w-5 h-5 text-muted-foreground" />}
+                            {isLocked && <Lock className="w-5 h-5 text-muted-foreground" />}
                             <h3 className="text-lg font-bold">{level.title}</h3>
                           </div>
                           <Badge className={`${
