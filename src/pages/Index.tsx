@@ -4,10 +4,12 @@ import { GameCard } from "@/components/GameCard";
 import { QuizGame } from "@/components/QuizGame";
 import { AuthModal } from "@/components/AuthModal";
 import { UserProfileCard } from "@/components/UserProfile";
+import { HomeworkUpload } from "@/components/HomeworkUpload";
+import { AIGeneratedChallenges } from "@/components/AIGeneratedChallenges";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Trophy, Target, User, Star, Users } from "lucide-react";
+import { BookOpen, Trophy, Target, User, Star, Users, Brain, Upload } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { ParentDashboard } from "@/components/ParentDashboard";
@@ -24,6 +26,10 @@ const Index = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
+  const [showHomeworkUpload, setShowHomeworkUpload] = useState(false);
+  const [showAIChallenges, setShowAIChallenges] = useState(false);
+  const [currentAIChallenge, setCurrentAIChallenge] = useState<any>(null);
+  const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("englishGameData");
@@ -130,6 +136,22 @@ const Index = () => {
                   <Users className="h-4 w-4 ml-2" />
                   דשבורד הורים
                 </Button>
+                <Button
+                  onClick={() => setShowHomeworkUpload(!showHomeworkUpload)}
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <Upload className="h-4 w-4 ml-2" />
+                  העלה שיעורי בית
+                </Button>
+                <Button
+                  onClick={() => setShowAIChallenges(!showAIChallenges)}
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <Brain className="h-4 w-4 ml-2" />
+                  האתגרים שלי
+                </Button>
               </>
             ) : (
               <Button
@@ -166,6 +188,50 @@ const Index = () => {
                 <ParentDashboard />
                 <Button
                   onClick={() => setShowParentDashboard(false)}
+                  className="w-full mt-4"
+                  variant="outline"
+                >
+                  סגור
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Homework Upload Modal */}
+          {showHomeworkUpload && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-background rounded-lg p-6 max-w-md w-full">
+                <HomeworkUpload 
+                  onChallengeCreated={() => {
+                    setShowHomeworkUpload(false);
+                    setAiChallengesRefresh(prev => prev + 1);
+                    setShowAIChallenges(true);
+                  }}
+                />
+                <Button
+                  onClick={() => setShowHomeworkUpload(false)}
+                  className="w-full mt-4"
+                  variant="outline"
+                >
+                  סגור
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* AI Challenges Modal */}
+          {showAIChallenges && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-background rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <AIGeneratedChallenges 
+                  onChallengeSelect={(challenge) => {
+                    setCurrentAIChallenge(challenge);
+                    setShowAIChallenges(false);
+                  }}
+                  refreshTrigger={aiChallengesRefresh}
+                />
+                <Button
+                  onClick={() => setShowAIChallenges(false)}
                   className="w-full mt-4"
                   variant="outline"
                 >
@@ -250,6 +316,26 @@ const Index = () => {
 
   const currentGameData = currentGame ? selectedCategory.levels.find(g => g.id === currentGame) : null;
 
+  // Handle AI Challenge
+  if (currentAIChallenge) {
+    return (
+      <div className="min-h-screen bg-gradient-background p-4">
+        <div className="max-w-4xl mx-auto">
+          <GameHeader {...playerData} />
+          <QuizGame
+            questions={Array.isArray(currentAIChallenge.questions) ? currentAIChallenge.questions : []}
+            onComplete={(score, xpEarned) => {
+              const totalQuestions = Array.isArray(currentAIChallenge.questions) ? currentAIChallenge.questions.length : 0;
+              handleGameComplete(`ai_${currentAIChallenge.id}`, score, xpEarned, totalQuestions);
+              setCurrentAIChallenge(null);
+            }}
+            onBack={() => setCurrentAIChallenge(null)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (currentGame && currentGameData) {
     return (
       <div className="min-h-screen bg-gradient-background p-4">
@@ -271,6 +357,7 @@ const Index = () => {
       playerData={playerData}
       onGameSelect={startGame}
       onBack={() => setGameStarted(false)}
+      onAIChallengeSelect={setCurrentAIChallenge}
     />
   );
 };

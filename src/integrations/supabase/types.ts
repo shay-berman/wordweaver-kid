@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_generated_challenges: {
+        Row: {
+          created_at: string
+          description: string
+          difficulty_level: string
+          id: string
+          image_path: string
+          questions: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          difficulty_level?: string
+          id?: string
+          image_path: string
+          questions: Json
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          difficulty_level?: string
+          id?: string
+          image_path?: string
+          questions?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       challenge_categories: {
         Row: {
           created_at: string

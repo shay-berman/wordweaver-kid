@@ -3,8 +3,11 @@ import { GameCard } from './GameCard';
 import { Button } from './ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
 import { Badge } from './ui/badge';
-import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Lock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Lock, Upload, Brain, BookOpen } from 'lucide-react';
 import { GameCategory } from '@/data/gameData';
+import { HomeworkUpload } from './HomeworkUpload';
+import { AIGeneratedChallenges } from './AIGeneratedChallenges';
 import childCharacter from '@/assets/child-character.png';
 
 interface AdventurePathProps {
@@ -18,10 +21,14 @@ interface AdventurePathProps {
   };
   onGameSelect: (gameId: string) => void;
   onBack: () => void;
+  onAIChallengeSelect?: (challenge: any) => void;
 }
 
-export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBack }: AdventurePathProps) => {
+export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBack, onAIChallengeSelect }: AdventurePathProps) => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [showHomeworkUpload, setShowHomeworkUpload] = useState(false);
+  const [showAIChallenges, setShowAIChallenges] = useState(false);
+  const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
 
   const resetProgress = () => {
     // Reset completed levels for current category
@@ -108,6 +115,81 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
             <span className="font-bold">{playerData.score.toLocaleString()}</span>
           </div>
         </div>
+
+        {/* AI Challenges Section */}
+        <div className="mb-6">
+          <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Brain className="h-5 w-5 text-purple-600" />
+                אתגרים מותאמים לשיעורי הבית שלי
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={() => setShowHomeworkUpload(true)}
+                  className="bg-gradient-hero hover:opacity-90 flex items-center gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  העלה שיעורי בית חדשים
+                </Button>
+                <Button
+                  onClick={() => setShowAIChallenges(true)}
+                  variant="outline"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-300 dark:hover:bg-purple-900/20 flex items-center gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  האתגרים המותאמים שלי
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Homework Upload Modal */}
+        {showHomeworkUpload && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg p-6 max-w-md w-full">
+              <HomeworkUpload 
+                onChallengeCreated={() => {
+                  setShowHomeworkUpload(false);
+                  setAiChallengesRefresh(prev => prev + 1);
+                  setShowAIChallenges(true);
+                }}
+              />
+              <Button
+                onClick={() => setShowHomeworkUpload(false)}
+                className="w-full mt-4"
+                variant="outline"
+              >
+                סגור
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* AI Challenges Modal */}
+        {showAIChallenges && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <AIGeneratedChallenges 
+                onChallengeSelect={(challenge) => {
+                  setShowAIChallenges(false);
+                  onAIChallengeSelect?.(challenge);
+                }}
+                refreshTrigger={aiChallengesRefresh}
+              />
+              <Button
+                onClick={() => setShowAIChallenges(false)}
+                className="w-full mt-4"
+                variant="outline"
+              >
+                סגור
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Adventure Map */}
         <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl" 
