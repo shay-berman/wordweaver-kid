@@ -252,40 +252,40 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     }
   };
 
-  const speakEnglishWord = async (questionText: string, correctAnswer: string) => {
+  const speakEnglishText = async (questionText: string, correctAnswer: string) => {
     try {
-      // Extract English word from question or use correct answer
-      let englishWord = '';
+      // Extract all English text from question or use correct answer
+      let englishText = '';
       
-      // Try to find English word in parentheses in the question
+      // First, try to find English text in parentheses in the question
       const englishMatch = questionText.match(/\(([^)]*[a-zA-Z][^)]*)\)/);
       if (englishMatch) {
-        englishWord = englishMatch[1].trim();
-      } else if (/^[a-zA-Z\s]+$/.test(correctAnswer)) {
+        englishText = englishMatch[1].trim();
+      } else if (/^[a-zA-Z\s\.,!?]+$/.test(correctAnswer)) {
         // If correct answer is in English
-        englishWord = correctAnswer;
+        englishText = correctAnswer;
       } else {
-        // Try to find English word in the question text
-        const words = questionText.split(/[\s"'״"]+/);
-        for (const word of words) {
-          if (/^[a-zA-Z]+$/.test(word) && word.length > 1) {
-            englishWord = word;
-            break;
-          }
+        // Try to extract all English words from the question text
+        const words = questionText.split(/[\s"'״"()]+/);
+        const englishWords = words.filter(word => 
+          /^[a-zA-Z]+$/.test(word) && word.length > 1
+        );
+        if (englishWords.length > 0) {
+          englishText = englishWords.join(' ');
         }
       }
 
-      if (!englishWord) {
-        console.log('No English word found to pronounce');
+      if (!englishText) {
+        console.log('No English text found to pronounce');
         return;
       }
 
-      console.log('Speaking English word:', englishWord);
+      console.log('Speaking English text:', englishText);
 
       // Call the text-to-speech function
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
-          text: englishWord,
+          text: englishText,
           voice: 'nova' // Clear female voice for pronunciation
         }
       });
@@ -329,14 +329,14 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       return (
         <span>
           {beforeParentheses}
-          (<button
-             onClick={() => speakEnglishWord(questionText, englishWord)}
-             className="text-blue-600 hover:text-blue-800 underline cursor-pointer mx-1 font-medium transition-colors bg-transparent border-0 p-0"
-             type="button"
-             title="לחץ לשמיעת ההגייה"
-           >
-             {englishWord}
-           </button>)
+           (<button
+              onClick={() => speakEnglishText(questionText, englishWord)}
+              className="text-blue-600 hover:text-blue-800 underline cursor-pointer mx-1 font-medium transition-colors bg-transparent border-0 p-0"
+              type="button"
+              title="לחץ לשמיעת ההגייה"
+            >
+              {englishWord}
+            </button>)
           {afterParentheses}
         </span>
       );
@@ -359,7 +359,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
         processedWords.push(
           <span key={index}>
             <button
-              onClick={() => speakEnglishWord(questionText, englishWord)}
+              onClick={() => speakEnglishText(questionText, englishWord)}
               className="text-blue-600 hover:text-blue-800 underline cursor-pointer font-medium transition-colors bg-transparent border-0 p-0"
               type="button"
               title="לחץ לשמיעת ההגייה"
@@ -428,7 +428,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       playSuccessSound();
       
       // Speak the English word pronunciation
-      speakEnglishWord(current.question, current.correctAnswer);
+      speakEnglishText(current.question, current.correctAnswer);
       
       // Track consecutive correct answers
       const newConsecutiveCorrect = consecutiveCorrect + 1;
@@ -674,9 +674,9 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       <CardContent className="p-4 sm:p-6 pb-6">
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => speakEnglishWord(current.question, '')}
+            onClick={() => speakEnglishText(current.question, '')}
             className="flex-shrink-0 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
-            title="השמע את המילה באנגלית"
+            title="השמע את הטקסט באנגלית"
           >
             <Volume2 size={20} />
           </button>
