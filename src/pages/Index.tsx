@@ -6,6 +6,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { UserProfileCard } from "@/components/UserProfile";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Trophy, Target, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -287,22 +288,31 @@ const Index = () => {
         {/* Category Selection */}
         <div className="bg-card p-4 rounded-lg shadow-game mb-6">
           <h3 className="text-lg font-bold mb-3 text-right">בחר סוג הכנה:</h3>
-          <div className="grid grid-cols-1 gap-3">
-            {gameCategories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category)}
-                className={`p-4 rounded-lg text-right transition-all ${
-                  selectedCategory.id === category.id
-                    ? "bg-gradient-hero text-primary-foreground"
-                    : "bg-secondary hover:bg-secondary/80"
-                }`}
-              >
-                <h4 className="font-bold">{category.title}</h4>
-                <p className="text-sm opacity-80">{category.description}</p>
-              </button>
-            ))}
-          </div>
+          <Select
+            value={selectedCategory.id}
+            onValueChange={(value) => {
+              const category = gameCategories.find(cat => cat.id === value);
+              if (category) setSelectedCategory(category);
+            }}
+          >
+            <SelectTrigger className="w-full text-right bg-background border-2 hover:border-primary/50 transition-colors">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-2 shadow-lg z-50">
+              {gameCategories.map((category) => (
+                <SelectItem 
+                  key={category.id} 
+                  value={category.id}
+                  className="text-right hover:bg-secondary/80 focus:bg-secondary/80"
+                >
+                  <div className="text-right">
+                    <div className="font-bold">{category.title}</div>
+                    <div className="text-sm opacity-80">{category.description}</div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="mb-6">
