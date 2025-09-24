@@ -75,7 +75,8 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     "נהדר! אתה פשוט מושלם! 🏆",
     "איזה כוח! אתה גאון! 💫",
     "מדהים! ממש גאה בך! 🌈",
-    "אלוף! אתה מדהים! ⭐"
+    "אלוף! אתה מדהים! ⭐",
+    "אבא גאה בך! 👨‍👧‍👦✨"
   ];
 
   // Initialize background music
@@ -251,6 +252,40 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     }
   };
 
+  const playFailureSound = () => {
+    try {
+      const audioContext = new AudioContext();
+      
+      // Create a buzzer-like failure sound
+      const playNote = (frequency: number, startTime: number, duration: number, volume = 0.3) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        oscillator.type = 'sawtooth'; // Harsher sound for failure
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+      
+      const now = audioContext.currentTime;
+      // Descending failure sound
+      playNote(220, now, 0.2, 0.15); // A3
+      playNote(196, now + 0.15, 0.2, 0.15); // G3
+      playNote(174, now + 0.3, 0.4, 0.2); // F3
+      
+    } catch (error) {
+      console.log('Failure sound not available:', error);
+    }
+  };
+
   const handleAnswer = (answer?: string) => {
     const answerToCheck = answer || selectedAnswer;
     const isCorrect = answerToCheck === shuffledQuestions[currentQuestion].correctAnswer;
@@ -280,6 +315,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     } else {
       // Reset consecutive correct counter on wrong answer
       setConsecutiveCorrect(0);
+      playFailureSound();
     }
     setShowResult(true);
     
