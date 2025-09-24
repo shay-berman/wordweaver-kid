@@ -7,9 +7,10 @@ import { UserProfileCard } from "@/components/UserProfile";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Trophy, Target, User, Star } from "lucide-react";
+import { BookOpen, Trophy, Target, User, Star, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { ParentDashboard } from "@/components/ParentDashboard";
 import heroCharacter from "@/assets/hero-character.jpg";
 
 const Index = () => {
@@ -21,6 +22,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<GameCategory>(gameCategories[0]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showParentDashboard, setShowParentDashboard] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("englishGameData");
@@ -83,15 +85,25 @@ const Index = () => {
       <div className="min-h-screen bg-gradient-background flex items-center justify-center p-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Login/Profile button */}
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex gap-2">
             {user ? (
-              <Button
-                onClick={() => setShowProfile(!showProfile)}
-                className="bg-gradient-hero hover:shadow-glow"
-              >
-                <User className="h-4 w-4 ml-2" />
-                {user.user_metadata?.display_name || user.email?.split('@')[0] || 'פרופיל'}
-              </Button>
+              <>
+                <Button
+                  onClick={() => setShowProfile(!showProfile)}
+                  className="bg-gradient-hero hover:shadow-glow"
+                >
+                  <User className="h-4 w-4 ml-2" />
+                  {user.user_metadata?.display_name || user.email?.split('@')[0] || 'פרופיל'}
+                </Button>
+                <Button
+                  onClick={() => setShowParentDashboard(!showParentDashboard)}
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <Users className="h-4 w-4 ml-2" />
+                  דשבורד הורים
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={() => setShowAuthModal(true)}
@@ -111,6 +123,22 @@ const Index = () => {
                 <UserProfileCard />
                 <Button
                   onClick={() => setShowProfile(false)}
+                  className="w-full mt-4"
+                  variant="outline"
+                >
+                  סגור
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Parent Dashboard Modal */}
+          {showParentDashboard && user && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-background rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <ParentDashboard />
+                <Button
+                  onClick={() => setShowParentDashboard(false)}
                   className="w-full mt-4"
                   variant="outline"
                 >
