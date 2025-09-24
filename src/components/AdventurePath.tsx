@@ -134,6 +134,21 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
             />
           </svg>
           
+          {/* Castle Goal - Always Visible */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+            <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-6 rounded-2xl shadow-2xl border-4 border-yellow-400">
+              <div className="text-center">
+                <div className="text-5xl mb-2 animate-pulse">🏰</div>
+                <h3 className="text-lg font-bold text-white mb-1">
+                  הטירה המלכותית
+                </h3>
+                <p className="text-white/80 text-sm">
+                  המטרה שלך! 👑
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Adventure Locations */}
           <div className="relative z-10">
             {selectedCategory.levels.map((level, index) => {
@@ -213,19 +228,20 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
             })}
           </div>
 
-          {/* Completion Castle */}
+          {/* Completion Castle - Enhanced Victory */}
           {playerData.completedLevels.length === selectedCategory.levels.length && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="bg-gradient-hero p-8 rounded-2xl shadow-2xl animate-scale-in border-4 border-accent">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
+              <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 p-10 rounded-3xl shadow-2xl animate-bounce border-8 border-yellow-300 ring-4 ring-yellow-200">
                 <div className="text-center">
-                  <div className="text-6xl mb-4">🏰</div>
-                  <Trophy className="w-16 h-16 text-accent mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-primary-foreground mb-2">
+                  <div className="text-8xl mb-6 animate-pulse">🏰</div>
+                  <Trophy className="w-20 h-20 text-yellow-100 mx-auto mb-6 animate-spin" />
+                  <h3 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
                     מזל טוב! השלמת את כל המסלול!
                   </h3>
-                  <p className="text-primary-foreground/80">
+                  <p className="text-white text-lg drop-shadow-md">
                     הגעת לטירה! אתה אמיץ אמיתי! 👑
                   </p>
+                  <div className="mt-4 text-6xl animate-bounce">🎉</div>
                 </div>
               </div>
             </div>
