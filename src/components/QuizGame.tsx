@@ -232,8 +232,12 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
     }
   };
 
-  const handleAnswer = () => {
-    const isCorrect = selectedAnswer === questions[currentQuestion].correctAnswer;
+  const handleAnswer = (answer?: string) => {
+    const answerToCheck = answer || selectedAnswer;
+    const isCorrect = answerToCheck === questions[currentQuestion].correctAnswer;
+    if (answer) {
+      setSelectedAnswer(answer);
+    }
     if (isCorrect) {
       setScore(score + 1);
       setShowConfetti(true);
@@ -497,7 +501,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
                       : ""
                     : ""
                 }`}
-                onClick={() => !showResult && setSelectedAnswer(option)}
+                onClick={() => !showResult && handleAnswer(option)}
                 disabled={showResult}
               >
                 <div className="flex items-center gap-2">
@@ -525,22 +529,14 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
               חזור
             </Button>
             
-            {!showResult ? (
-              <Button 
-                onClick={handleAnswer}
-                disabled={!selectedAnswer}
-                className="bg-gradient-hero min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation shadow-lg"
-              >
-                שלח תשובה
-              </Button>
-            ) : (
+            {showResult ? (
               <Button 
                 onClick={nextQuestion} 
                 className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white min-h-[48px] px-4 sm:px-6 text-sm sm:text-base touch-manipulation shadow-lg animate-pulse border-2 border-emerald-300"
               >
                 {currentQuestion + 1 < questions.length ? "שאלה הבאה" : "סיום"}
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
 
