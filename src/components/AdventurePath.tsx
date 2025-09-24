@@ -238,10 +238,27 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   <h3 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
                     מזל טוב! השלמת את כל המסלול!
                   </h3>
-                  <p className="text-white text-lg drop-shadow-md">
+                  <p className="text-white text-lg drop-shadow-md mb-6">
                     הגעת לטירה! אתה אמיץ אמיתי! 👑
                   </p>
-                  <div className="mt-4 text-6xl animate-bounce">🎉</div>
+                  <div className="text-6xl animate-bounce mb-4">🎉</div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 justify-center">
+                    <Button 
+                      onClick={onBack}
+                      className="bg-white text-yellow-600 hover:bg-yellow-50 font-bold px-6 py-3 rounded-xl shadow-lg border-2 border-yellow-300"
+                    >
+                      🏠 חזור להתחלה
+                    </Button>
+                    <Button 
+                      onClick={onBack}
+                      variant="outline"
+                      className="bg-white/20 text-white border-white hover:bg-white/30 font-bold px-6 py-3 rounded-xl shadow-lg"
+                    >
+                      🗺️ בחר מסלול אחר
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
