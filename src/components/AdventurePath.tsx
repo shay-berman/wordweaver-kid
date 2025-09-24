@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { GameCard } from './GameCard';
 import { Button } from './ui/button';
-import { ArrowRight, MapPin, Star, Trophy, User, Map } from 'lucide-react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
+import { Badge } from './ui/badge';
+import { ArrowRight, MapPin, Star, Trophy, User, Map, CheckCircle, Clock } from 'lucide-react';
 import { GameCategory } from '@/data/gameData';
 import childCharacter from '@/assets/child-character.png';
 
@@ -211,42 +213,81 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                     </div>
                   )}
 
-                  {/* Location Marker */}
-                  <div className={`relative z-20 ${isCurrentPosition && !isCompleted ? 'animate-pulse' : ''}`}>
-                    <div className={`w-12 h-12 rounded-full border-4 shadow-xl flex items-center justify-center ${
-                      isCompleted 
-                        ? 'bg-success border-success text-success-foreground shadow-success/50' 
-                        : isAccessible 
-                          ? 'bg-primary border-primary text-primary-foreground shadow-primary/50' 
-                          : 'bg-muted border-muted-foreground text-muted-foreground shadow-muted/30'
-                    }`}>
-                      {isCompleted ? (
-                        <div className="text-lg">✅</div>
-                      ) : isAccessible ? (
-                        <MapPin className="w-6 h-6" />
-                      ) : (
-                        <div className="text-lg">🔒</div>
-                      )}
-                    </div>
+                  {/* Location Marker with Hover Details */}
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <div 
+                        className={`relative z-20 cursor-pointer transition-all duration-300 hover:scale-110 ${
+                          isCurrentPosition && !isCompleted ? 'animate-pulse' : ''
+                        } ${!isLocked ? 'hover:shadow-2xl' : ''}`}
+                        onClick={() => !isLocked && onGameSelect(level.id)}
+                      >
+                        <div className={`w-16 h-16 rounded-full border-4 shadow-xl flex items-center justify-center transition-all duration-300 ${
+                          isCompleted 
+                            ? 'bg-success border-success text-success-foreground shadow-success/50' 
+                            : isAccessible 
+                              ? 'bg-primary border-primary text-primary-foreground shadow-primary/50 hover:shadow-primary/70' 
+                              : 'bg-muted border-muted-foreground text-muted-foreground shadow-muted/30'
+                        }`}>
+                          {isCompleted ? (
+                            <CheckCircle className="w-8 h-8" />
+                          ) : isAccessible ? (
+                            <MapPin className="w-8 h-8" />
+                          ) : (
+                            <Clock className="w-8 h-8" />
+                          )}
+                        </div>
+                        
+                        {/* Step Number Badge */}
+                        <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                          {index + 1}
+                        </div>
+                      </div>
+                    </HoverCardTrigger>
                     
-                    {/* Step Number Badge */}
-                    <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg">
-                      {index + 1}
-                    </div>
-                  </div>
-
-                  {/* Game Card */}
-                  <div className={`mt-4 w-64 ${isCurrentPosition && !isCompleted ? 'ring-4 ring-primary/50 ring-offset-2' : ''}`}>
-                    <GameCard
-                      title={level.title}
-                      description={level.description}
-                      difficulty={level.difficulty}
-                      xpReward={level.xpReward}
-                      completed={isCompleted}
-                      locked={isLocked}
-                      onClick={() => onGameSelect(level.id)}
-                    />
-                  </div>
+                    <HoverCardContent className="w-80 p-4 bg-background border-primary/20 shadow-2xl" side="right">
+                      <div className="space-y-3">
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            {isCompleted && <CheckCircle className="w-5 h-5 text-success" />}
+                            {isLocked && <Clock className="w-5 h-5 text-muted-foreground" />}
+                            <h3 className="text-lg font-bold">{level.title}</h3>
+                          </div>
+                          <Badge className={`${
+                            level.difficulty === 'easy' ? 'bg-success text-success-foreground' :
+                            level.difficulty === 'medium' ? 'bg-warning text-warning-foreground' :
+                            'bg-destructive text-destructive-foreground'
+                          }`}>
+                            {level.difficulty === 'easy' ? 'קל' : 
+                             level.difficulty === 'medium' ? 'בינוני' : 'קשה'}
+                          </Badge>
+                        </div>
+                        
+                        {/* Description */}
+                        <p className="text-muted-foreground text-right">{level.description}</p>
+                        
+                        {/* XP Reward */}
+                        <div className="flex items-center gap-2 text-accent">
+                          <Star className="w-4 h-4" />
+                          <span className="font-semibold">+{level.xpReward} נקודות ניסיון</span>
+                        </div>
+                        
+                        {/* Action Button */}
+                        <Button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isLocked) onGameSelect(level.id);
+                          }}
+                          disabled={isLocked}
+                          variant={isCompleted ? "secondary" : "default"}
+                          className="w-full bg-gradient-hero hover:opacity-90 transition-opacity"
+                        >
+                          {isCompleted ? "בוצע ✓" : isLocked ? "נעול 🔒" : "התחל"}
+                        </Button>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </div>
               );
             })}
