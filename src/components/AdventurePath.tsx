@@ -204,11 +204,12 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
         )}
 
         {/* Adventure Map */}
-        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-6 shadow-2xl" 
+        <div className="relative bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-4 shadow-2xl overflow-auto" 
              style={{ 
                height: isMobile 
-                 ? `${Math.max(400, selectedCategory.levels.length * 120 + 300)}px`
-                 : `${Math.max(400, Math.ceil(selectedCategory.levels.length / 4) * 150 + 300)}px` 
+                 ? `${Math.max(600, selectedCategory.levels.length * 120 + 400)}px`
+                 : `${Math.max(400, Math.ceil(selectedCategory.levels.length / 4) * 150 + 300)}px`,
+               minHeight: isMobile ? '600px' : '400px'
              }}>
           {/* Map Background Pattern */}
           <div className="absolute inset-0 opacity-10">
@@ -241,7 +242,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
               d={(() => {
                 const pathPoints = selectedCategory.levels.map((_, index) => {
                   const pos = getPathPosition(index, selectedCategory.levels.length);
-                  return { x: 400 + pos.x, y: 80 + pos.y };
+                  return { x: (isMobile ? 300 : 400) + pos.x, y: 80 + pos.y };
                 });
                 
                 if (pathPoints.length === 0) return '';
@@ -274,7 +275,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                 // Add path to castle
                 const lastPoint = pathPoints[pathPoints.length - 1];
                 const castlePos = getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1);
-                const castlePoint = { x: 400 + castlePos.x, y: 80 + castlePos.y };
+                const castlePoint = { x: (isMobile ? 300 : 400) + castlePos.x, y: 80 + castlePos.y };
                 pathData += ` Q ${lastPoint.x} ${(lastPoint.y + castlePoint.y) / 2} ${castlePoint.x} ${castlePoint.y}`;
                 
                 return pathData;
@@ -291,7 +292,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
               d={(() => {
                 const pathPoints = selectedCategory.levels.map((_, index) => {
                   const pos = getPathPosition(index, selectedCategory.levels.length);
-                  return { x: 400 + pos.x, y: 80 + pos.y };
+                  return { x: (isMobile ? 300 : 400) + pos.x, y: 80 + pos.y };
                 });
                 
                 if (pathPoints.length === 0) return '';
@@ -324,7 +325,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                 // Add path to castle
                 const lastPoint = pathPoints[pathPoints.length - 1];
                 const castlePos = getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1);
-                const castlePoint = { x: 400 + castlePos.x, y: 80 + castlePos.y };
+                const castlePoint = { x: (isMobile ? 300 : 400) + castlePos.x, y: 80 + castlePos.y };
                 pathData += ` Q ${lastPoint.x} ${(lastPoint.y + castlePoint.y) / 2} ${castlePoint.x} ${castlePoint.y}`;
                 
                 return pathData;
@@ -341,7 +342,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
           {/* Castle Goal - At the end of the path */}
           <div className="absolute transform -translate-x-1/2 z-20" 
                style={{ 
-                 left: `${400 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).x}px`,
+                 left: `${(isMobile ? 300 : 400) + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).x}px`,
                  top: `${80 + getPathPosition(selectedCategory.levels.length, selectedCategory.levels.length + 1).y}px` 
                }}>
             <div className="bg-gradient-to-b from-purple-500 to-indigo-600 p-4 rounded-2xl shadow-2xl border-4 border-yellow-400">
@@ -373,7 +374,7 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                   key={level.id} 
                   className="absolute transform -translate-x-1/2 -translate-y-1/2"
                   style={{
-                    left: `${400 + position.x}px`,
+                    left: `${(isMobile ? 300 : 400) + position.x}px`,
                     top: `${80 + position.y}px`
                   }}
                 >
