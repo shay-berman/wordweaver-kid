@@ -343,35 +343,45 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
       );
     }
     
-    // Look for standalone English words
+    // Look for standalone English words with improved regex to handle punctuation
     const words = questionText.split(/(\s+)/);
-    const hasEnglishWords = words.some(word => /^[a-zA-Z]+$/.test(word.trim()) && word.trim().length > 1);
+    const processedWords: JSX.Element[] = [];
+    
+    words.forEach((word, index) => {
+      // Match English words, potentially with punctuation at the end
+      const englishMatch = word.match(/^([a-zA-Z]+)([^a-zA-Z]*)$/);
+      
+      if (englishMatch && englishMatch[1].length > 1) {
+        const englishWord = englishMatch[1];
+        const punctuation = englishMatch[2];
+        
+        processedWords.push(
+          <span key={index}>
+            <button
+              onClick={() => speakEnglishWord(questionText, englishWord)}
+              className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200 cursor-pointer font-medium transition-all duration-200 inline-flex items-center gap-1"
+              type="button"
+              title="לחץ לשמיעת ההגייה"
+            >
+              {englishWord}
+              <span className="text-xs">🔊</span>
+            </button>
+            {punctuation}
+          </span>
+        );
+      } else {
+        processedWords.push(<span key={index}>{word}</span>);
+      }
+    });
+    
+    // Check if we found any English words
+    const hasEnglishWords = words.some(word => {
+      const englishMatch = word.match(/^[a-zA-Z]+/);
+      return englishMatch && englishMatch[0].length > 1;
+    });
     
     if (hasEnglishWords) {
-      return (
-        <span>
-          {words.map((word, index) => {
-            const trimmedWord = word.trim();
-            if (/^[a-zA-Z]+$/.test(trimmedWord) && trimmedWord.length > 1) {
-              return (
-                <span key={index}>
-                  <button
-                    onClick={() => speakEnglishWord(questionText, trimmedWord)}
-                    className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md border border-blue-200 cursor-pointer font-medium transition-all duration-200 inline-flex items-center gap-1"
-                    type="button"
-                    title="לחץ לשמיעת ההגייה"
-                  >
-                    {trimmedWord}
-                    <span className="text-xs">🔊</span>
-                  </button>
-                  {word.replace(trimmedWord, '')}
-                </span>
-              );
-            }
-            return <span key={index}>{word}</span>;
-          })}
-        </span>
-      );
+      return <span>{processedWords}</span>;
     }
     
     // No English words found, return regular text
