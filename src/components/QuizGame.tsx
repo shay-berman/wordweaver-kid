@@ -676,11 +676,11 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
             </Badge>
           </div>
         </div>
-        <div className="flex items-center justify-center gap-2 px-2 py-3">
+        <div className="flex items-center justify-center gap-1 px-2 py-3 overflow-x-auto">
           {shuffledQuestions.map((_, index) => (
             <div
               key={index}
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border-2 transition-all ${
+              className={`flex items-center justify-center min-w-[32px] w-8 h-8 rounded-full text-xs font-semibold border-2 transition-all shrink-0 ${
                 index === currentQuestion
                   ? 'bg-primary text-primary-foreground border-primary'
                   : questionAnswers[index] === 'correct'

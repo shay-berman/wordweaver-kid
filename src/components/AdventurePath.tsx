@@ -553,35 +553,83 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
                           </div>
                         )}
                         
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
-                          <p className="text-white text-lg">
-                            🏆 איספת {discoveredCount} מתוך {beitarItems.length} חפצי בית״ר!
-                          </p>
+                        {/* Kid's Room Visualization */}
+                        <div className="bg-gradient-to-b from-blue-200 to-green-200 rounded-xl p-6 mb-4 relative min-h-[300px]">
+                          {/* Room Background */}
+                          <div className="absolute inset-0 rounded-xl overflow-hidden">
+                            {/* Wall */}
+                            <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-blue-100 to-blue-200"></div>
+                            {/* Floor */}
+                            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-amber-200 to-amber-100"></div>
+                            {/* Window */}
+                            <div className="absolute top-4 right-4 w-16 h-12 bg-sky-200 border-4 border-white rounded-lg"></div>
+                          </div>
                           
-                          {discoveredCount > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2 justify-center">
-                              {discoveredItems.map(itemId => {
-                                const item = beitarItems.find(i => i.id === itemId);
-                                return item ? (
-                                  <span key={itemId} className="text-2xl bg-white/20 rounded-lg p-2" title={item.name}>
-                                    {item.emoji}
-                                  </span>
-                                ) : null;
-                              })}
-                            </div>
-                          )}
-                          
-                          {discoveredCount === beitarItems.length && (
-                            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl">
-                              <p className="text-red-800 font-bold text-lg">
-                                🎉 איספת את כל חפצי בית״ר! אתה אוהד אמיתי! 🎉
+                          {/* Room Items Positioned */}
+                          <div className="relative z-10 h-full">
+                            <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                              חדר של אוהד בית״ר 🏠
+                            </h3>
+                            
+                            {discoveredCount > 0 && (
+                              <div className="relative h-48">
+                                {discoveredItems.map((itemId, itemIndex) => {
+                                  const item = beitarItems.find(i => i.id === itemId);
+                                  if (!item) return null;
+                                  
+                                  // Position items around the room
+                                  const positions = [
+                                    { top: '20%', left: '20%' }, // Top shelf
+                                    { top: '60%', left: '80%' }, // Right side
+                                    { top: '70%', left: '15%' }, // Floor left
+                                    { top: '30%', left: '70%' }, // Wall right
+                                    { top: '50%', left: '50%' }, // Center
+                                    { top: '20%', left: '60%' }, // Top center
+                                    { top: '75%', left: '60%' }, // Floor center
+                                    { top: '40%', left: '25%' }, // Left wall
+                                    { top: '65%', right: '20%' }, // Floor right
+                                    { top: '25%', left: '40%' }  // Top left
+                                  ];
+                                  
+                                  const position = positions[itemIndex % positions.length];
+                                  
+                                  return (
+                                    <div
+                                      key={itemId}
+                                      className="absolute animate-fade-in transform transition-all duration-700 hover:scale-110"
+                                      style={position}
+                                      title={item.name}
+                                    >
+                                      <div className="text-4xl drop-shadow-lg bg-white/20 rounded-lg p-2 border-2 border-white/50">
+                                        {item.emoji}
+                                      </div>
+                                      <div className="text-xs text-center text-gray-700 mt-1 font-semibold bg-white/70 rounded px-1">
+                                        {item.name}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            
+                            <div className="mt-4 text-center">
+                              <p className="text-lg font-semibold text-gray-800">
+                                🏆 איספת {discoveredCount} מתוך {beitarItems.length} חפצי בית״ר!
                               </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
+                              
+                              {discoveredCount === beitarItems.length && (
+                                <div className="mt-3 p-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl">
+                                  <p className="text-red-800 font-bold text-lg">
+                                    🎉 איספת את כל חפצי בית״ר! אתה אוהד אמיתי! 🎉
+                                  </p>
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     );
+                   })()}
                   
                   <div className="text-6xl animate-bounce mb-4">🎉</div>
                   
