@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GameCard } from './GameCard';
 import { Button } from './ui/button';
-import { ArrowRight, MapPin, Star, Trophy, User } from 'lucide-react';
+import { ArrowRight, MapPin, Star, Trophy, User, Map } from 'lucide-react';
 import { GameCategory } from '@/data/gameData';
 import childCharacter from '@/assets/child-character.png';
 
@@ -43,19 +43,52 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
 
   const currentPosition = getCurrentPosition();
 
+  // Calculate path positions for a winding map-like path
+  const getPathPosition = (index: number, total: number) => {
+    const pathWidth = 80; // How wide the zigzag should be
+    const verticalSpacing = 200; // Space between levels vertically
+    
+    // Create a winding path that alternates sides and curves
+    const progress = index / (total - 1);
+    const yPosition = index * verticalSpacing;
+    
+    // Create different patterns for different sections
+    let xOffset = 0;
+    const section = Math.floor(index / 3); // Group every 3 levels
+    
+    if (section % 4 === 0) {
+      // Straight zigzag
+      xOffset = (index % 2 === 0 ? -pathWidth : pathWidth);
+    } else if (section % 4 === 1) {
+      // Curved to the right
+      xOffset = pathWidth * Math.sin(index * 0.8);
+    } else if (section % 4 === 2) {
+      // S-curve
+      xOffset = pathWidth * Math.sin(index * 1.2) * (index % 2 === 0 ? 1 : -1);
+    } else {
+      // Curved to the left
+      xOffset = -pathWidth * Math.sin(index * 0.8);
+    }
+    
+    return { x: xOffset, y: yPosition };
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-background p-4">
+    <div className="min-h-screen bg-gradient-background p-4 overflow-hidden">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Button onClick={onBack} variant="outline">
             חזור
           </Button>
-          <div className="text-center">
-            <h1 className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-              {selectedCategory.title}
-            </h1>
-            <p className="text-muted-foreground mt-2">{selectedCategory.description}</p>
+          <div className="text-center flex items-center gap-2">
+            <Map className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+                מפת ההרפתקאות
+              </h1>
+              <p className="text-muted-foreground mt-1">{selectedCategory.description}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2 text-primary">
             <Star className="w-5 h-5" />
@@ -63,95 +96,137 @@ export const AdventurePath = ({ selectedCategory, playerData, onGameSelect, onBa
           </div>
         </div>
 
-        {/* Adventure Path */}
-        <div className="relative">
-          {/* Path Line */}
-          <div className="absolute top-32 left-1/2 transform -translate-x-1/2 w-1 bg-gradient-to-b from-primary/30 to-accent/30 h-full -z-10"></div>
+        {/* Adventure Map */}
+        <div className="relative min-h-[800px] bg-gradient-to-b from-green-100/20 via-blue-100/20 to-purple-100/20 rounded-3xl p-8 shadow-2xl">
+          {/* Map Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="w-full h-full" style={{
+              backgroundImage: `radial-gradient(circle at 25% 25%, #10b981 2px, transparent 2px),
+                               radial-gradient(circle at 75% 75%, #3b82f6 2px, transparent 2px)`,
+              backgroundSize: '50px 50px'
+            }}></div>
+          </div>
           
-          {/* Adventure Steps */}
-          <div className="space-y-8">
+          {/* Winding Path */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+            <defs>
+              <linearGradient id="pathGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+            <path
+              d={(() => {
+                const pathPoints = selectedCategory.levels.map((_, index) => {
+                  const pos = getPathPosition(index, selectedCategory.levels.length);
+                  return `${300 + pos.x},${100 + pos.y}`;
+                });
+                return `M ${pathPoints[0]} ${pathPoints.slice(1).map((point, i) => 
+                  `Q ${pathPoints[i].split(',')[0]},${(parseInt(pathPoints[i].split(',')[1]) + parseInt(point.split(',')[1])) / 2} ${point}`
+                ).join(' ')}`;
+              })()}
+              stroke="url(#pathGradient)"
+              strokeWidth="8"
+              fill="none"
+              strokeDasharray="20,10"
+              className="animate-pulse"
+            />
+          </svg>
+          
+          {/* Adventure Locations */}
+          <div className="relative z-10">
             {selectedCategory.levels.map((level, index) => {
               const isCompleted = playerData.completedLevels.includes(level.id);
               const isLocked = level.unlockLevel > playerData.level;
               const isCurrentPosition = index === currentPosition;
               const isAccessible = !isLocked || isCompleted;
+              
+              const position = getPathPosition(index, selectedCategory.levels.length);
 
               return (
-                <div key={level.id} className={`relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                  {/* Character Avatar (only show at current position) */}
+                <div 
+                  key={level.id} 
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: `calc(50% + ${position.x}px)`,
+                    top: `${100 + position.y}px`
+                  }}
+                >
+                  {/* Character at current position */}
                   {isCurrentPosition && !isCompleted && (
-                    <div className={`absolute top-0 ${index % 2 === 0 ? 'left-1/2 ml-8' : 'right-1/2 mr-8'} z-20`}>
+                    <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-30">
                       <div className="relative">
                         <img 
                           src={childCharacter} 
                           alt="Adventure Character" 
-                          className="w-16 h-16 rounded-full shadow-lg animate-bounce border-4 border-primary bg-white"
+                          className="w-20 h-20 rounded-full shadow-xl animate-bounce border-4 border-primary bg-white"
                         />
-                        <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full p-1 text-xs">
-                          🚀
+                        <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full p-1 text-xs animate-pulse">
+                          🗺️
                         </div>
                       </div>
-                      <div className="text-xs text-center mt-1 font-bold text-primary">
+                      <div className="text-xs text-center mt-1 font-bold text-primary bg-white/90 rounded-full px-2 py-1 shadow-md">
                         כאן אני!
                       </div>
                     </div>
                   )}
 
-                  {/* Path Node */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 z-10">
-                    <div className={`w-6 h-6 rounded-full border-4 ${
+                  {/* Location Marker */}
+                  <div className={`relative z-20 ${isCurrentPosition && !isCompleted ? 'animate-pulse' : ''}`}>
+                    <div className={`w-12 h-12 rounded-full border-4 shadow-xl flex items-center justify-center ${
                       isCompleted 
-                        ? 'bg-success border-success-foreground' 
+                        ? 'bg-success border-success text-success-foreground shadow-success/50' 
                         : isAccessible 
-                          ? 'bg-primary border-primary-foreground' 
-                          : 'bg-muted border-muted-foreground'
+                          ? 'bg-primary border-primary text-primary-foreground shadow-primary/50' 
+                          : 'bg-muted border-muted-foreground text-muted-foreground shadow-muted/30'
                     }`}>
-                      {isCompleted && <div className="w-full h-full flex items-center justify-center text-success-foreground text-xs">✓</div>}
+                      {isCompleted ? (
+                        <div className="text-lg">✅</div>
+                      ) : isAccessible ? (
+                        <MapPin className="w-6 h-6" />
+                      ) : (
+                        <div className="text-lg">🔒</div>
+                      )}
+                    </div>
+                    
+                    {/* Step Number Badge */}
+                    <div className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg">
+                      {index + 1}
                     </div>
                   </div>
 
                   {/* Game Card */}
-                  <div className={`w-full max-w-md ${index % 2 === 0 ? 'ml-16' : 'mr-16'}`}>
-                    <div className={`relative ${isCurrentPosition && !isCompleted ? 'ring-4 ring-primary/50 ring-offset-2' : ''}`}>
-                      <GameCard
-                        title={level.title}
-                        description={level.description}
-                        difficulty={level.difficulty}
-                        xpReward={level.xpReward}
-                        completed={isCompleted}
-                        locked={isLocked}
-                        onClick={() => onGameSelect(level.id)}
-                      />
-                      
-                      {/* Step Number */}
-                      <div className="absolute -top-3 -right-3 bg-accent text-accent-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
-                        {index + 1}
-                      </div>
-
-                      {/* Progress Arrow */}
-                      {index < selectedCategory.levels.length - 1 && (
-                        <div className={`absolute top-1/2 ${index % 2 === 0 ? '-right-12' : '-left-12'} transform -translate-y-1/2`}>
-                          <ArrowRight className={`w-8 h-8 text-muted-foreground ${index % 2 !== 0 ? 'rotate-180' : ''}`} />
-                        </div>
-                      )}
-                    </div>
+                  <div className={`mt-6 w-72 ${isCurrentPosition && !isCompleted ? 'ring-4 ring-primary/50 ring-offset-2' : ''}`}>
+                    <GameCard
+                      title={level.title}
+                      description={level.description}
+                      difficulty={level.difficulty}
+                      xpReward={level.xpReward}
+                      completed={isCompleted}
+                      locked={isLocked}
+                      onClick={() => onGameSelect(level.id)}
+                    />
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Completion Trophy */}
+          {/* Completion Castle */}
           {playerData.completedLevels.length === selectedCategory.levels.length && (
-            <div className="mt-12 text-center">
-              <div className="bg-gradient-hero p-8 rounded-lg shadow-game animate-scale-in">
-                <Trophy className="w-16 h-16 text-accent mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-primary-foreground mb-2">
-                  מזל טוב! השלמת את כל המסלול!
-                </h3>
-                <p className="text-primary-foreground/80">
-                  אתה אמיץ אמיתי! המשך למסלול הבא
-                </p>
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="bg-gradient-hero p-8 rounded-2xl shadow-2xl animate-scale-in border-4 border-accent">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">🏰</div>
+                  <Trophy className="w-16 h-16 text-accent mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-primary-foreground mb-2">
+                    מזל טוב! השלמת את כל המסלול!
+                  </h3>
+                  <p className="text-primary-foreground/80">
+                    הגעת לטירה! אתה אמיץ אמיתי! 👑
+                  </p>
+                </div>
               </div>
             </div>
           )}
