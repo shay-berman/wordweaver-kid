@@ -163,12 +163,21 @@ serve(async (req) => {
 
     console.log('OpenAI analysis result:', analysisResult);
 
-    // Parse the JSON response
+    // Parse the JSON response - handle markdown code blocks
     let parsedResult;
     try {
-      parsedResult = JSON.parse(analysisResult);
+      // Remove markdown code blocks if present
+      let cleanedResult = analysisResult.trim();
+      if (cleanedResult.startsWith('```json')) {
+        cleanedResult = cleanedResult.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResult.startsWith('```')) {
+        cleanedResult = cleanedResult.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      parsedResult = JSON.parse(cleanedResult);
     } catch (error) {
       console.error('Failed to parse OpenAI response:', error);
+      console.error('Raw response:', analysisResult);
       throw new Error('Failed to parse AI response');
     }
 
