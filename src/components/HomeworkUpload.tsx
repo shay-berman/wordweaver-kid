@@ -30,33 +30,38 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
+    const files = event.target.files;
+    if (!files || files.length === 0 || !user) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('אנא בחר קובץ תמונה');
-      return;
-    }
+    // Validate each file
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('אנא בחר רק קבצי תמונה');
+        return;
+      }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('גודל הקובץ חייב להיות עד 5MB');
-      return;
+      // Validate file size (max 12MB)
+      if (file.size > 12 * 1024 * 1024) {
+        toast.error('גודל כל קובץ חייב להיות עד 12MB');
+        return;
+      }
     }
 
     setIsUploading(true);
     setUploadStatus('uploading');
 
     try {
-      // Convert image to base64
-      const base64Image = await convertToBase64(file);
+      // Convert all images to base64
+      const base64Images = await Promise.all(
+        Array.from(files).map(file => convertToBase64(file))
+      );
 
       // Call the edge function to analyze the homework
       const { data, error } = await supabase.functions.invoke('analyze-homework-image', {
         body: {
-          imageBase64: base64Image,
-          userId: user.id
+          imageBase64: base64Images.length === 1 ? base64Images[0] : base64Images,
+          userId: user.id,
+          isMultiPage: base64Images.length > 1
         }
       });
 
@@ -106,7 +111,7 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
       case 'error':
         return 'שגיאה בהעלאה';
       default:
-        return 'העלה תמונה של שיעורי הבית';
+        return 'העלה תמונות של שיעורי הבית';
     }
   };
 
@@ -138,13 +143,15 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
           </div>
           
           <p className="text-sm text-muted-foreground mb-4">
-            העלה תמונה של שיעורי הבית באנגלית שלך ואני אצור בשבילך אתגר מותאם!
+            העלה תמונות של שיעורי הבית באנגלית שלך ואני אצור בשבילך אתגר מותאם! ניתן להעלות מספר עמודים.
           </p>
 
           <div className="relative">
             <input
               type="file"
               accept="image/*"
+              capture="environment"
+              multiple
               onChange={handleFileUpload}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               disabled={isUploading}
@@ -158,7 +165,7 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
           </div>
 
           <p className="text-xs text-muted-foreground mt-2">
-            קבצי תמונה עד 5MB
+            קבצי תמונה עד 12MB | ניתן להעלות מספר קבצים
           </p>
         </div>
       </CardContent>

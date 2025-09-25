@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, userId } = await req.json();
+    const { imageBase64, userId, isMultiPage } = await req.json();
 
     if (!imageBase64 || !userId) {
       return new Response(
@@ -27,7 +27,16 @@ serve(async (req) => {
       );
     }
 
-    console.log('Analyzing homework image for user:', userId);
+    console.log('Analyzing homework image(s) for user:', userId, 'Multi-page:', isMultiPage);
+
+    // Handle multiple images
+    const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
+    const imageContent = images.map((base64, index) => ({
+      type: 'image_url',
+      image_url: {
+        url: `data:image/jpeg;base64,${base64}`
+      }
+    }));
 
     // Call OpenAI Vision API to analyze the homework image
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -44,6 +53,7 @@ serve(async (req) => {
             content: `You are an English teacher creating quiz questions based on homework images. 
             Analyze the homework content and create 5 English questions based on what you see.
             The questions should be appropriate for elementary/middle school students learning English.
+            ${isMultiPage ? 'You are seeing multiple pages of homework - analyze all pages together to create comprehensive questions.' : ''}
             
             Return your response in this exact JSON format:
             {
@@ -67,14 +77,11 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: 'Please analyze this homework image and create English learning questions based on it.'
+                text: isMultiPage 
+                  ? `Please analyze these ${images.length} homework pages and create English learning questions based on all the content.`
+                  : 'Please analyze this homework image and create English learning questions based on it.'
               },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
+              ...imageContent
             ]
           }
         ],
