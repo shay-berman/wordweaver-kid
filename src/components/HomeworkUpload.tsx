@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileImage, Loader2, CheckCircle, AlertCircle, Camera, FolderOpen } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Upload, FileImage, Loader2, CheckCircle, AlertCircle, Camera, FolderOpen, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +16,12 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
   const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Configuration state
+  const [pathName, setPathName] = useState(`מסלול שיעורי בית - ${new Date().toLocaleDateString('he-IL')}`);
+  const [chaptersCount, setChaptersCount] = useState(5);
+  const [questionsPerChapter, setQuestionsPerChapter] = useState(5);
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -61,7 +69,10 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
         body: {
           imageBase64: base64Images.length === 1 ? base64Images[0] : base64Images,
           userId: user.id,
-          isMultiPage: base64Images.length > 1
+          isMultiPage: base64Images.length > 1,
+          pathName,
+          chaptersCount,
+          questionsPerChapter
         }
       });
 
@@ -143,8 +154,66 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
           </div>
           
           <p className="text-sm text-muted-foreground mb-4">
-            העלה תמונות של שיעורי הבית באנגלית שלך ואני אצור בשבילך אתגר מותאם! ניתן להעלות מספר עמודים.
+            העלה תמונות של שיעורי הבית באנגלית שלך ואני אצור בשבילך מסלול לימוד מלא עם מספר פרקים! ניתן להעלות מספר עמודים.
           </p>
+
+          {/* Settings Toggle */}
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSettings(!showSettings)}
+              className="w-full"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              {showSettings ? 'הסתר הגדרות' : 'הגדרות מתקדמות'}
+            </Button>
+          </div>
+
+          {/* Advanced Settings */}
+          {showSettings && (
+            <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/50">
+              <div className="space-y-2">
+                <Label htmlFor="pathName">שם המסלול</Label>
+                <Input
+                  id="pathName"
+                  value={pathName}
+                  onChange={(e) => setPathName(e.target.value)}
+                  placeholder="הכנס שם למסלול"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="chaptersCount">מספר פרקים</Label>
+                  <Input
+                    id="chaptersCount"
+                    type="number"
+                    min="3"
+                    max="10"
+                    value={chaptersCount}
+                    onChange={(e) => setChaptersCount(parseInt(e.target.value) || 5)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="questionsPerChapter">שאלות לפרק</Label>
+                  <Input
+                    id="questionsPerChapter"
+                    type="number"
+                    min="3"
+                    max="10"
+                    value={questionsPerChapter}
+                    onChange={(e) => setQuestionsPerChapter(parseInt(e.target.value) || 5)}
+                  />
+                </div>
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                ברירת מחדל: 5 פרקים עם 5 שאלות בכל פרק
+              </p>
+            </div>
+          )}
 
           {isUploading ? (
             <div className="py-4">

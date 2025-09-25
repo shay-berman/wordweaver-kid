@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, userId, isMultiPage } = await req.json();
+    const { imageBase64, userId, isMultiPage, pathName, chaptersCount = 5, questionsPerChapter = 5 } = await req.json();
 
     if (!imageBase64 || !userId) {
       return new Response(
@@ -27,7 +27,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Analyzing homework image(s) for user:', userId, 'Multi-page:', isMultiPage);
+    console.log('Analyzing homework image(s) for user:', userId, 'Multi-page:', isMultiPage, 'Chapters:', chaptersCount, 'Questions per chapter:', questionsPerChapter);
 
     // Handle multiple images
     const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
@@ -50,9 +50,11 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an English teacher creating quiz questions based on homework images. 
-            Analyze the homework content and identify what type of exercises are shown, then create appropriate questions.
-            ${isMultiPage ? 'You are seeing multiple pages of homework - analyze all pages together to create comprehensive questions.' : ''}
+            content: `You are an English teacher creating a full learning path with multiple chapters based on homework images. 
+            Analyze the homework content and create ${chaptersCount} progressive chapters, each with ${questionsPerChapter} questions.
+            ${isMultiPage ? 'You are seeing multiple pages of homework - analyze all pages together to create comprehensive learning path.' : ''}
+            
+            Create a learning path that progresses from basic concepts to more advanced ones across the chapters.
             
             FIRST: Identify the type of exercises in the homework:
             1. Multiple choice questions
@@ -61,7 +63,7 @@ serve(async (req) => {
             4. Grammar exercises
             5. Vocabulary exercises
             
-            Based on the exercise type, create questions with appropriate formats:
+            Based on the exercise types, create questions with appropriate formats across all chapters:
             
             For PARTS OF SPEECH identification - use "highlight" type:
             - Present the sentence and ask to identify specific word types
@@ -75,21 +77,31 @@ serve(async (req) => {
             
             Return response in this EXACT JSON format:
             {
-              "title": "כותרת על בסיס נושא השיעור בעברית",
-              "description": "תיאור קצר של תוכן השיעור בעברית", 
+              "pathName": "${pathName || 'מסלול שיעורי בית'}",
+              "description": "תיאור קצר של מסלול הלימוד בעברית", 
               "difficulty": "beginner|intermediate|advanced",
-              "questions": [
+              "chapters": [
                 {
-                  "type": "highlight|fill_blank|multiple_choice",
-                  "question": "שאלה ברורה בעברית",
-                  "sentence": "The sentence to work with (for highlight/fill_blank types)",
-                  "options": ["אפשרות 1", "אפשרות 2", "אפשרות 3", "אפשרות 4"],
-                  "correctAnswer": "התשובה הנכונה",
-                  "targetWord": "המילה שצריך לסמן (רק עבור highlight type)",
-                  "explanation": "הסבר קצר בעברית"
+                  "id": "chapter-1",
+                  "title": "כותרת הפרק בעברית",
+                  "description": "תיאור הפרק",
+                  "difficulty": "easy|medium|hard",
+                  "questions": [
+                    {
+                      "type": "highlight|fill_blank|multiple_choice",
+                      "question": "שאלה ברורה בעברית",
+                      "sentence": "The sentence to work with (for highlight/fill_blank types)",
+                      "options": ["אפשרות 1", "אפשרות 2", "אפשרות 3", "אפשרות 4"],
+                      "correctAnswer": "התשובה הנכונה",
+                      "targetWord": "המילה שצריך לסמן (רק עבור highlight type)",
+                      "explanation": "הסבר קצר בעברית"
+                    }
+                  ]
                 }
               ]
             }
+            
+            Make sure each chapter has exactly ${questionsPerChapter} questions and focuses on different aspects or difficulty levels of the homework content.
             
             Examples by type:
             
@@ -129,8 +141,8 @@ serve(async (req) => {
               {
                 type: 'text',
                 text: isMultiPage 
-                  ? `Please analyze these ${images.length} homework pages and create English learning questions based on all the content.`
-                  : 'Please analyze this homework image and create English learning questions based on it.'
+                  ? `Please analyze these ${images.length} homework pages and create a complete learning path with ${chaptersCount} chapters, each containing ${questionsPerChapter} questions based on all the content.`
+                  : `Please analyze this homework image and create a complete learning path with ${chaptersCount} chapters, each containing ${questionsPerChapter} questions based on the content.`
               },
               ...imageContent
             ]
@@ -163,15 +175,15 @@ serve(async (req) => {
     // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Store the AI-generated challenge in the database
+    // Store the AI-generated learning path in the database
     const { data: challenge, error: insertError } = await supabase
       .from('ai_generated_challenges')
       .insert({
         user_id: userId,
         image_path: 'base64_image', // We could store the actual image in storage if needed
-        title: parsedResult.title,
+        title: parsedResult.pathName,
         description: parsedResult.description,
-        questions: parsedResult.questions,
+        questions: parsedResult.chapters, // Store chapters in the questions field
         difficulty_level: parsedResult.difficulty || 'beginner'
       })
       .select()
@@ -188,7 +200,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         challenge: challenge,
-        message: 'אתגר חדש נוצר בהצלחה מתוך שיעורי הבית שלך!' 
+        message: `מסלול לימוד חדש נוצר בהצלחה עם ${chaptersCount} פרקים מתוך שיעורי הבית שלך!` 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

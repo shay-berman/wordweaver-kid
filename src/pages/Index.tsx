@@ -79,27 +79,77 @@ const Index = () => {
     const savedCategories = localStorage.getItem("customCategories");
     const customCategories = savedCategories ? JSON.parse(savedCategories) : [];
     
-    // Convert user challenges to category format
-    const userChallengeCategories = userChallenges.map((challenge) => ({
-      id: `ai_${challenge.id}`,
-      title: `🤖 ${challenge.title}`,
-      description: challenge.description,
-      color: "from-purple-500 to-pink-600",
-      icon: "brain",
-      estimatedTime: "15 דקות",
-      levels: [
-        {
-          id: challenge.id,
-          title: challenge.title,
+    // Convert user challenges to category format with support for multi-chapter paths
+    const formatAIChallenge = (challenge: any) => {
+      // Check if this is a multi-chapter learning path or single challenge
+      const isMultiChapter = Array.isArray(challenge.questions) && challenge.questions[0]?.questions;
+      
+      if (isMultiChapter) {
+        // Format as multi-chapter learning path
+        return {
+          id: `ai_${challenge.id}`,
+          title: `✨ ${challenge.title}`,
           description: challenge.description,
-          difficulty: "easy" as const,
-          unlockLevel: 1,
-          estimatedMinutes: 15,
-          xpReward: 50,
-          questions: challenge.questions || []
-        }
-      ]
-    }));
+          color: "from-purple-500 to-pink-600",
+          icon: "brain",
+          estimatedTime: "30-45 דקות",
+          levels: challenge.questions.map((chapter: any, chapterIndex: number) => ({
+            id: `ai-chapter-${challenge.id}-${chapterIndex}`,
+            title: chapter.title,
+            description: chapter.description,
+            difficulty: chapter.difficulty === 'easy' ? 'easy' : 
+                       chapter.difficulty === 'hard' ? 'hard' : 'medium',
+            xpReward: chapter.difficulty === 'easy' ? 50 : 
+                     chapter.difficulty === 'hard' ? 100 : 75,
+            unlockLevel: chapterIndex + 1,
+            estimatedMinutes: 10,
+            questions: chapter.questions.map((q: any, index: number) => ({
+              id: `q${index + 1}`,
+              type: q.type || "multiple-choice",
+              question: q.question,
+              options: q.options || [],
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation || "",
+              sentence: q.sentence,
+              targetWord: q.targetWord
+            }))
+          }))
+        };
+      } else {
+        // Format as single challenge (backwards compatibility)
+        return {
+          id: `ai_${challenge.id}`,
+          title: `🤖 ${challenge.title}`,
+          description: challenge.description,
+          color: "from-purple-500 to-pink-600",
+          icon: "brain",
+          estimatedTime: "15 דקות",
+          levels: [{
+            id: challenge.id,
+            title: challenge.title,
+            description: challenge.description,
+            difficulty: challenge.difficulty_level === 'beginner' ? 'easy' : 
+                       challenge.difficulty_level === 'advanced' ? 'hard' : 'medium',
+            unlockLevel: 1,
+            estimatedMinutes: 15,
+            xpReward: challenge.difficulty_level === 'beginner' ? 50 : 
+                     challenge.difficulty_level === 'advanced' ? 100 : 75,
+            questions: challenge.questions.map((q: any, index: number) => ({
+              id: `q${index + 1}`,
+              type: q.type || "multiple-choice",
+              question: q.question,
+              options: q.options || [],
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation || "",
+              sentence: q.sentence,
+              targetWord: q.targetWord
+            }))
+          }]
+        };
+      }
+    };
+
+    const userChallengeCategories = userChallenges.map(formatAIChallenge);
     
     setAllCategories([...gameCategories, ...customCategories, ...userChallengeCategories]);
   }, [userChallenges]);
