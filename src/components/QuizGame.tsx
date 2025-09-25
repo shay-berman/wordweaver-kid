@@ -9,11 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface Question {
   id: string;
-  type: "multiple-choice" | "translation" | "grammar";
+  type: "multiple-choice" | "translation" | "grammar" | "highlight" | "fill_blank";
   question: string;
   options?: string[];
   correctAnswer: string;
   explanation?: string;
+  sentence?: string; // For highlight and fill_blank types
+  targetWord?: string; // For highlight type - the word to highlight
 }
 
 interface QuizGameProps {
@@ -762,6 +764,98 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
                 </div>
               </Button>
             ))}
+          </div>
+        )}
+
+        {/* Highlight type questions - for parts of speech identification */}
+        {current.type === "highlight" && current.sentence && (
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-center font-medium mb-4 text-gray-700">סמן את המילה הנכונה במשפט:</p>
+              <div className="text-xl font-semibold text-center leading-relaxed">
+                {current.sentence.split(' ').map((word, index) => (
+                  <button
+                    key={index}
+                    className={`mx-1 px-2 py-1 rounded transition-all ${
+                      selectedAnswer === word.replace(/[^\w]/g, '') // Remove punctuation for comparison
+                        ? "bg-primary text-white border-2 border-primary"
+                        : "hover:bg-blue-100 border-2 border-transparent"
+                    } ${
+                      showResult
+                        ? word.replace(/[^\w]/g, '') === current.correctAnswer
+                          ? "bg-success text-success-foreground border-success"
+                          : selectedAnswer === word.replace(/[^\w]/g, '') && word.replace(/[^\w]/g, '') !== current.correctAnswer
+                          ? "bg-destructive text-destructive-foreground border-destructive"
+                          : ""
+                        : ""
+                    }`}
+                    onClick={() => !showResult && handleAnswer(word.replace(/[^\w]/g, ''))}
+                    disabled={showResult}
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fill in the blank type questions */}
+        {current.type === "fill_blank" && current.sentence && current.options && (
+          <div className="space-y-4">
+            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-center font-medium mb-4 text-gray-700">בחר את המילה הנכונה להשלמת המשפט:</p>
+              <div className="text-xl font-semibold text-center leading-relaxed mb-6">
+                {current.sentence.replace('___', '______').split('______').map((part, index, array) => (
+                  <span key={index}>
+                    {part}
+                    {index < array.length - 1 && (
+                      <span className="inline-block mx-2 px-4 py-2 bg-white border-2 border-dashed border-gray-400 rounded min-w-[80px] text-center">
+                        {selectedAnswer && showResult ? (
+                          <span className={selectedAnswer === current.correctAnswer ? "text-success" : "text-destructive"}>
+                            {selectedAnswer}
+                          </span>
+                        ) : selectedAnswer ? (
+                          selectedAnswer
+                        ) : (
+                          "___"
+                        )}
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              {current.options.map((option, index) => (
+                <Button
+                  key={index}
+                  variant={selectedAnswer === option ? "default" : "outline"}
+                  className={`w-full text-center p-4 h-auto min-h-[56px] text-base touch-manipulation ${
+                    showResult
+                      ? option === current.correctAnswer
+                        ? "bg-success text-success-foreground border-success"
+                        : selectedAnswer === option && option !== current.correctAnswer
+                        ? "bg-destructive text-destructive-foreground border-destructive"
+                        : ""
+                      : ""
+                  }`}
+                  onClick={() => !showResult && handleAnswer(option)}
+                  disabled={showResult}
+                >
+                  <div className="flex items-center gap-2">
+                    {showResult && option === current.correctAnswer && (
+                      <CheckCircle className="w-5 h-5" />
+                    )}
+                    {showResult && selectedAnswer === option && option !== current.correctAnswer && (
+                      <X className="w-5 h-5" />
+                    )}
+                    <span className="leading-relaxed">{option}</span>
+                  </div>
+                </Button>
+              ))}
+            </div>
           </div>
         )}
 

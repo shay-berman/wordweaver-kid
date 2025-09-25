@@ -451,11 +451,13 @@ const Index = () => {
     const formattedQuestions = Array.isArray(currentAIChallenge.questions) 
       ? currentAIChallenge.questions.map((q: any, index: number) => ({
           id: `ai_question_${index}`,
-          type: "multiple-choice" as const,
+          type: q.type || "multiple-choice" as const,
           question: q.question || "",
           options: q.options || [],
           correctAnswer: q.correctAnswer || "",
-          explanation: q.explanation || ""
+          explanation: q.explanation || "",
+          sentence: q.sentence || "", // For highlight and fill_blank types
+          targetWord: q.targetWord || "" // For highlight type
         }))
       : [];
 
