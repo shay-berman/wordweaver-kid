@@ -9,11 +9,12 @@ import { AIGeneratedChallenges } from "@/components/AIGeneratedChallenges";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookOpen, Trophy, Target, User, Star, Users, Brain, Upload } from "lucide-react";
+import { BookOpen, Trophy, Target, User, Star, Users, Brain, Upload, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { ParentDashboard } from "@/components/ParentDashboard";
 import { AdventurePath } from "@/components/AdventurePath";
+import { supabase } from "@/integrations/supabase/client";
 import heroCharacter from "@/assets/hero-character.jpg";
 
 const Index = () => {
@@ -31,6 +32,28 @@ const Index = () => {
   const [currentAIChallenge, setCurrentAIChallenge] = useState<any>(null);
   const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
   const [allCategories, setAllCategories] = useState<GameCategory[]>(gameCategories);
+  const [userChallenges, setUserChallenges] = useState<any[]>([]);
+
+  const loadUserChallenges = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: challenges, error } = await supabase
+        .from('ai_generated_challenges')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error loading user challenges:', error);
+        return;
+      }
+      
+      setUserChallenges(challenges || []);
+    } catch (error) {
+      console.error('Error loading user challenges:', error);
+    }
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("englishGameData");
@@ -44,7 +67,42 @@ const Index = () => {
       const customCategories = JSON.parse(savedCategories);
       setAllCategories([...gameCategories, ...customCategories]);
     }
-  }, []);
+
+    // Load user challenges when user is available
+    if (user) {
+      loadUserChallenges();
+    }
+  }, [user]);
+
+  // Update categories when user challenges change
+  useEffect(() => {
+    const savedCategories = localStorage.getItem("customCategories");
+    const customCategories = savedCategories ? JSON.parse(savedCategories) : [];
+    
+    // Convert user challenges to category format
+    const userChallengeCategories = userChallenges.map((challenge) => ({
+      id: `ai_${challenge.id}`,
+      title: `🤖 ${challenge.title}`,
+      description: challenge.description,
+      color: "from-purple-500 to-pink-600",
+      icon: "brain",
+      estimatedTime: "15 דקות",
+      levels: [
+        {
+          id: challenge.id,
+          title: challenge.title,
+          description: challenge.description,
+          difficulty: "easy" as const,
+          unlockLevel: 1,
+          estimatedMinutes: 15,
+          xpReward: 50,
+          questions: challenge.questions || []
+        }
+      ]
+    }));
+    
+    setAllCategories([...gameCategories, ...customCategories, ...userChallengeCategories]);
+  }, [userChallenges]);
 
   const savePlayerData = (data: typeof playerData) => {
     setPlayerData(data);
@@ -83,6 +141,15 @@ const Index = () => {
   };
 
   const startGame = (gameId: string) => {
+    // Check if this is an AI challenge
+    if (selectedCategory.id.startsWith('ai_')) {
+      const challenge = userChallenges.find(c => c.id === gameId);
+      if (challenge) {
+        setCurrentAIChallenge(challenge);
+        return;
+      }
+    }
+
     const game = selectedCategory.levels.find(g => g.id === gameId);
     if (game && (game.unlockLevel <= playerData.level || playerData.completedLevels.includes(gameId))) {
       setCurrentGame(gameId);
@@ -213,7 +280,8 @@ const Index = () => {
                   onChallengeCreated={() => {
                     setShowHomeworkUpload(false);
                     setAiChallengesRefresh(prev => prev + 1);
-                    setShowAIChallenges(true);
+                    loadUserChallenges(); // Reload user challenges to update dropdown
+                    toast.success('אתגר חדש נוצר! ניתן לבחור אותו מרשימת המסלולים');
                   }}
                 />
                 <Button
@@ -283,14 +351,67 @@ const Index = () => {
                 <SelectValue placeholder="בחר מסלול" />
               </SelectTrigger>
               <SelectContent className="bg-background border-primary/20 shadow-xl z-50">
-                {allCategories.map((category) => (
+                {/* Default categories section */}
+                <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50">
+                  מסלולי ברירת מחדל
+                </div>
+                {gameCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id} className="text-right cursor-pointer hover:bg-primary/10">
                     <div className="text-right">
-                      <div className="font-medium">{category.title}</div>
+                      <div className="font-medium flex items-center gap-2">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        {category.title}
+                      </div>
                       <div className="text-sm text-muted-foreground">{category.description}</div>
                     </div>
                   </SelectItem>
                 ))}
+                
+                {/* User challenges section */}
+                {userChallenges.length > 0 && (
+                  <>
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                      המסלולים שלי (מהעלאת שיעורי בית)
+                    </div>
+                    {allCategories
+                      .filter(cat => cat.id.startsWith('ai_'))
+                      .map((category) => (
+                        <SelectItem key={category.id} value={category.id} className="text-right cursor-pointer hover:bg-primary/10">
+                          <div className="text-right">
+                            <div className="font-medium flex items-center gap-2">
+                              <Sparkles className="h-4 w-4 text-purple-500" />
+                              {category.title}
+                            </div>
+                            <div className="text-sm text-muted-foreground">{category.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))
+                    }
+                  </>
+                )}
+                
+                {/* Custom categories section */}
+                {allCategories.some(cat => !gameCategories.some(gc => gc.id === cat.id) && !cat.id.startsWith('ai_')) && (
+                  <>
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                      מסלולים דומים שנוצרו
+                    </div>
+                    {allCategories
+                      .filter(cat => !gameCategories.some(gc => gc.id === cat.id) && !cat.id.startsWith('ai_'))
+                      .map((category) => (
+                        <SelectItem key={category.id} value={category.id} className="text-right cursor-pointer hover:bg-primary/10">
+                          <div className="text-right">
+                            <div className="font-medium flex items-center gap-2">
+                              <Target className="h-4 w-4 text-blue-500" />
+                              {category.title}
+                            </div>
+                            <div className="text-sm text-muted-foreground">{category.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))
+                    }
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
