@@ -447,14 +447,26 @@ const Index = () => {
 
   // Handle AI Challenge
   if (currentAIChallenge) {
+    // Convert AI questions to the format expected by QuizGame
+    const formattedQuestions = Array.isArray(currentAIChallenge.questions) 
+      ? currentAIChallenge.questions.map((q: any, index: number) => ({
+          id: `ai_question_${index}`,
+          type: "multiple-choice" as const,
+          question: q.question || "",
+          options: q.options || [],
+          correctAnswer: q.correctAnswer || "",
+          explanation: q.explanation || ""
+        }))
+      : [];
+
     return (
       <div className="min-h-screen bg-gradient-background p-4">
         <div className="max-w-4xl mx-auto">
           <GameHeader {...playerData} />
           <QuizGame
-            questions={Array.isArray(currentAIChallenge.questions) ? currentAIChallenge.questions : []}
+            questions={formattedQuestions}
             onComplete={(score, xpEarned) => {
-              const totalQuestions = Array.isArray(currentAIChallenge.questions) ? currentAIChallenge.questions.length : 0;
+              const totalQuestions = formattedQuestions.length;
               handleGameComplete(`ai_${currentAIChallenge.id}`, score, xpEarned, totalQuestions);
               setCurrentAIChallenge(null);
             }}

@@ -55,22 +55,32 @@ serve(async (req) => {
             The questions should be appropriate for elementary/middle school students learning English.
             ${isMultiPage ? 'You are seeing multiple pages of homework - analyze all pages together to create comprehensive questions.' : ''}
             
+            IMPORTANT: Create CLEAR multiple-choice questions with 4 options each. Make sure:
+            1. Each question has exactly 4 distinct answer options
+            2. Only one option is clearly correct
+            3. The other 3 options are plausible but incorrect
+            4. All text should be in Hebrew except for English words being tested
+            5. Questions should focus on the specific content shown in the homework
+            
             Return your response in this exact JSON format:
             {
-              "title": "Title based on homework topic",
-              "description": "Brief description of what the homework covers",
+              "title": "Title based on homework topic in Hebrew",
+              "description": "Brief description of what the homework covers in Hebrew",
               "difficulty": "beginner|intermediate|advanced",
               "questions": [
                 {
-                  "question": "Question text in Hebrew",
-                  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-                  "correctAnswer": "Correct option text",
-                  "explanation": "Explanation in Hebrew"
+                  "question": "שאלה ברורה בעברית",
+                  "options": ["אפשרות 1", "אפשרות 2", "אפשרות 3", "אפשרות 4"],
+                  "correctAnswer": "התשובה הנכונה (חייבת להיות זהה לאחת מהאפשרויות)",
+                  "explanation": "הסבר קצר בעברית למה זו התשובה הנכונה"
                 }
               ]
             }
             
-            Make sure all questions are in Hebrew and focus on English vocabulary, grammar, or comprehension based on the homework content.`
+            Examples of good questions based on parts of speech homework:
+            - "מהו הפועל במשפט 'She reads a book'?" with options: ["She", "reads", "book", "a"]
+            - "איזה מילה היא תואר במשפט 'The tall boy smiled'?" with options: ["boy", "tall", "smiled", "The"]
+            - "מהו שם העצם במשפט 'Birds fly over trees'?" with options: ["fly", "over", "Birds", "trees"]`
           },
           {
             role: 'user',
