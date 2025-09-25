@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileImage, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, FileImage, Loader2, CheckCircle, AlertCircle, Camera, FolderOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,23 +146,64 @@ export const HomeworkUpload = ({ onChallengeCreated }: HomeworkUploadProps) => {
             העלה תמונות של שיעורי הבית באנגלית שלך ואני אצור בשבילך אתגר מותאם! ניתן להעלות מספר עמודים.
           </p>
 
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              multiple
-              onChange={handleFileUpload}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              disabled={isUploading}
-            />
-            <Button
-              disabled={isUploading}
-              className="w-full bg-gradient-hero hover:opacity-90"
-            >
-              {getStatusText()}
-            </Button>
-          </div>
+          {isUploading ? (
+            <div className="py-4">
+              <Button disabled className="w-full">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {getStatusText()}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Camera Button */}
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={isUploading}
+                  id="camera-input"
+                />
+                <Button
+                  disabled={isUploading}
+                  className="w-full bg-gradient-hero hover:opacity-90"
+                  asChild
+                >
+                  <label htmlFor="camera-input" className="cursor-pointer flex items-center justify-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    צלם תמונה
+                  </label>
+                </Button>
+              </div>
+
+              {/* File Selection Button */}
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={isUploading}
+                  id="file-input"
+                />
+                <Button
+                  disabled={isUploading}
+                  variant="outline"
+                  className="w-full"
+                  asChild
+                >
+                  <label htmlFor="file-input" className="cursor-pointer flex items-center justify-center gap-2">
+                    <FolderOpen className="h-4 w-4" />
+                    בחר מהגלריה
+                  </label>
+                </Button>
+              </div>
+            </div>
+          )}
 
           <p className="text-xs text-muted-foreground mt-2">
             קבצי תמונה עד 12MB | ניתן להעלות מספר קבצים
