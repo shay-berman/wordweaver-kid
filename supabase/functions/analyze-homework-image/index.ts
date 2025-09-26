@@ -50,90 +50,37 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an English teacher creating a full learning path with multiple chapters based on homework images. 
-            Analyze the homework content and create ${chaptersCount} progressive chapters, each with ${questionsPerChapter} questions.
-            ${isMultiPage ? 'You are seeing multiple pages of homework - analyze all pages together to create comprehensive learning path.' : ''}
-            
-            Create a learning path that progresses from basic concepts to more advanced ones across the chapters.
-            
-            FIRST: Identify the type of exercises in the homework:
-            1. Multiple choice questions
-            2. Fill-in-the-blank sentences 
-            3. Parts of speech identification (noun, verb, adjective, etc.)
-            4. Grammar exercises
-            5. Vocabulary exercises
-            
-            Based on the exercise types, create questions with appropriate formats across all chapters:
-            
-            For PARTS OF SPEECH identification - use "highlight" type:
-            - Present the sentence and ask to identify specific word types
-            - Provide the sentence as highlightable text
-            
-            For FILL-IN-THE-BLANK - use "fill_blank" type:
-            - Show sentence with blank and ask to complete it
-            
-            For GENERAL questions - use "multiple_choice" type:
-            - Standard 4-option multiple choice
-            
-            Return response in this EXACT JSON format:
-            {
-              "pathName": "${pathName || 'מסלול שיעורי בית'}",
-              "description": "תיאור קצר של מסלול הלימוד בעברית", 
-              "difficulty": "beginner|intermediate|advanced",
-              "chapters": [
-                {
-                  "id": "chapter-1",
-                  "title": "כותרת הפרק בעברית",
-                  "description": "תיאור הפרק",
-                  "difficulty": "easy|medium|hard",
-                  "questions": [
-                    {
-                      "type": "highlight|fill_blank|multiple_choice",
-                      "question": "שאלה ברורה בעברית",
-                      "sentence": "The sentence to work with (for highlight/fill_blank types)",
-                      "options": ["אפשרות 1", "אפשרות 2", "אפשרות 3", "אפשרות 4"],
-                      "correctAnswer": "התשובה הנכונה",
-                      "targetWord": "המילה שצריך לסמן (רק עבור highlight type)",
-                      "explanation": "הסבר קצר בעברית"
-                    }
-                  ]
-                }
-              ]
-            }
-            
-            Make sure each chapter has exactly ${questionsPerChapter} questions and focuses on different aspects or difficulty levels of the homework content.
-            
-            Examples by type:
-            
-            HIGHLIGHT type (parts of speech):
-            {
-              "type": "highlight",
-              "question": "סמן את הפועל במשפט הבא:",
-              "sentence": "She reads a book every day",
-              "targetWord": "reads",
-              "options": ["She", "reads", "book", "day"],
-              "correctAnswer": "reads",
-              "explanation": "reads הוא הפועל במשפט"
-            }
-            
-            FILL_BLANK type:
-            {
-              "type": "fill_blank", 
-              "question": "מלא את החסר במשפט:",
-              "sentence": "I ___ to school every morning",
-              "options": ["go", "goes", "going", "gone"],
-              "correctAnswer": "go",
-              "explanation": "I משתמש עם go בזמן הווה"
-            }
-            
-            MULTIPLE_CHOICE type:
-            {
-              "type": "multiple_choice",
-              "question": "איזו מילה פירושה 'ספר'?",
-              "options": ["book", "look", "took", "cook"],
-              "correctAnswer": "book", 
-              "explanation": "book פירושו ספר בעברית"
-            }`
+            content: `You are an educational AI that creates learning paths from homework images.
+
+Create ${chaptersCount} chapters with ${questionsPerChapter} questions each.
+
+Return ONLY valid JSON with this structure:
+{
+  "pathName": "${pathName || 'מסלול שיעורי בית'}",
+  "description": "Brief description in Hebrew",
+  "difficulty": "beginner",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "Chapter title in Hebrew",
+      "description": "Brief description",
+      "difficulty": "easy",
+      "questions": [
+        {
+          "type": "highlight|fill_blank|multiple_choice",
+          "question": "Question in Hebrew", 
+          "sentence": "Sentence (for highlight/fill_blank)",
+          "options": ["option1", "option2", "option3", "option4"],
+          "correctAnswer": "correct option",
+          "targetWord": "word to highlight (highlight type only)",
+          "explanation": "Brief explanation in Hebrew"
+        }
+      ]
+    }
+  ]
+}
+
+CRITICAL: Keep response under 5000 characters total. Be concise.`
           },
           {
             role: 'user',
