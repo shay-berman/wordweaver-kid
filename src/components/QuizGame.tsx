@@ -487,10 +487,12 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   };
 
   const nextQuestion = () => {
+    // Reset selected answer immediately to avoid showing previous selection
+    setSelectedAnswer("");
+    setShowResult(false);
+    
     if (currentQuestion + 1 < shuffledQuestions.length) {
       setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer("");
-      setShowResult(false);
       setTimeLeft(30);
     } else {
       const xpEarned = score * 10 + (score === shuffledQuestions.length ? 50 : 0);
