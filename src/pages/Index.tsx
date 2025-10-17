@@ -6,6 +6,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { UserProfileCard } from "@/components/UserProfile";
 import { HomeworkUpload } from "@/components/HomeworkUpload";
 import { AIGeneratedChallenges } from "@/components/AIGeneratedChallenges";
+import { GradeSelection } from "@/components/GradeSelection";
 import { gameCategories, initialPlayerData, GameCategory } from "@/data/gameData";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +21,8 @@ import heroCharacter from "@/assets/hero-character.jpg";
 const Index = () => {
   const { user, loading } = useAuth();
   const [playerData, setPlayerData] = useState(initialPlayerData);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [showGradeSelection, setShowGradeSelection] = useState(false);
   const [currentGame, setCurrentGame] = useState<string | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameMode, setGameMode] = useState<"vocabulary" | "grammar" | "all">("all");
@@ -33,6 +36,32 @@ const Index = () => {
   const [aiChallengesRefresh, setAiChallengesRefresh] = useState(0);
   const [allCategories, setAllCategories] = useState<GameCategory[]>(gameCategories);
   const [userChallenges, setUserChallenges] = useState<any[]>([]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+      
+      setUserProfile(profile);
+      
+      // Show grade selection if grade is not set
+      if (!(profile as any)?.grade) {
+        setShowGradeSelection(true);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   const loadUserChallenges = async () => {
     if (!user) return;
@@ -68,8 +97,9 @@ const Index = () => {
       setAllCategories([...gameCategories, ...customCategories]);
     }
 
-    // Load user challenges when user is available
+    // Load user profile and challenges when user is available
     if (user) {
+      loadUserProfile();
       loadUserChallenges();
     }
   }, [user]);
@@ -236,6 +266,17 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  // Show grade selection for new users after Google login
+  if (user && showGradeSelection) {
+    return <GradeSelection 
+      userId={user.id} 
+      onComplete={() => {
+        setShowGradeSelection(false);
+        loadUserChallenges();
+      }} 
+    />;
   }
 
   if (!gameStarted) {
