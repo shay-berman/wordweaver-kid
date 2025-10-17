@@ -22,20 +22,32 @@ export const GradeSelection = ({ userId, onComplete }: GradeSelectionProps) => {
 
     setLoading(true)
     try {
-      // Update user profile with grade
+      // Create or update user profile with grade using upsert
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .update({ grade: selectedGrade } as any)
-        .eq('user_id', userId)
+        .upsert({ 
+          user_id: userId,
+          grade: selectedGrade 
+        } as any, {
+          onConflict: 'user_id'
+        })
 
-      if (profileError) throw profileError
+      if (profileError) {
+        console.error('Profile error:', profileError)
+        throw profileError
+      }
 
       // Generate initial paths
-      const { error: generateError } = await supabase.functions.invoke('generate-initial-paths', {
+      const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-initial-paths', {
         body: { grade: selectedGrade, userId }
       })
 
-      if (generateError) throw generateError
+      if (generateError) {
+        console.error('Generate error:', generateError)
+        throw generateError
+      }
+
+      console.log('Generation result:', generateData)
 
       toast({
         title: 'הגדרות נשמרו',
