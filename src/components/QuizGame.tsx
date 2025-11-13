@@ -65,6 +65,7 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [previousAnswer, setPreviousAnswer] = useState("");
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [questionAnswers, setQuestionAnswers] = useState<('correct' | 'incorrect' | null)[]>(() => 
@@ -487,7 +488,8 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
   };
 
   const nextQuestion = () => {
-    // Reset selected answer immediately to avoid showing previous selection
+    // Save current answer as previous before resetting
+    setPreviousAnswer(selectedAnswer);
     setSelectedAnswer("");
     setShowResult(false);
     
@@ -750,6 +752,8 @@ export const QuizGame = ({ questions, onComplete, onBack }: QuizGameProps) => {
                       : selectedAnswer === option && option !== current.correctAnswer
                       ? "bg-destructive text-destructive-foreground border-destructive"
                       : ""
+                    : previousAnswer === option && !selectedAnswer
+                    ? "bg-orange-100 border-orange-400 border-2 text-orange-900"
                     : ""
                 }`}
                 onClick={() => !showResult && handleAnswer(option)}
