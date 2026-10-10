@@ -101,8 +101,17 @@ CRITICAL: Keep response under 5000 characters total. Be concise.`
     });
 
     if (!response.ok) {
-      console.error('OpenAI API error:', response.status, await response.text());
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errText = await response.text();
+      console.error('OpenAI API error:', response.status, errText);
+      const noCredits = response.status === 429 && /quota|credit/i.test(errText);
+      return new Response(JSON.stringify({
+        success: false,
+        error: noCredits
+          ? 'נגמר הקרדיט בחשבון OpenAI. יש להוסיף קרדיט כדי ליצור אתגרים מצילום.'
+          : response.status === 429
+            ? 'יותר מדי בקשות כרגע, נסו שוב בעוד דקה.'
+            : `שגיאה בשירות ניתוח התמונות (${response.status})`,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const openAIResponse = await response.json();
