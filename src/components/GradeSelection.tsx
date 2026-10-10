@@ -58,10 +58,10 @@ export const GradeSelection = ({ userId, onComplete }: GradeSelectionProps) => {
     } catch (error) {
       console.error('Error saving grade:', error)
       toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בשמירת הכיתה',
-        variant: 'destructive',
+        title: 'ממשיכים למשחק',
+        description: 'לא הצלחנו לשמור את הכיתה, אבל אפשר לשחק כרגיל',
       })
+      onComplete()
     } finally {
       setLoading(false)
     }
@@ -101,6 +101,9 @@ export const GradeSelection = ({ userId, onComplete }: GradeSelectionProps) => {
             ) : (
               'המשך'
             )}
+          </Button>
+          <Button variant="ghost" className="w-full h-12 mt-2" onClick={onComplete}>
+            דלג והתחל לשחק
           </Button>
         </CardContent>
       </Card>
