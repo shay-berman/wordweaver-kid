@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -27,26 +27,34 @@ serve(async (req) => {
       );
     }
 
+    if (!lovableApiKey) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'שירות הבינה המלאכותית לא מוגדר. נסו שוב מאוחר יותר.',
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     console.log('Analyzing homework image(s) for user:', userId, 'Multi-page:', isMultiPage, 'Chapters:', chaptersCount, 'Questions per chapter:', questionsPerChapter);
 
     // Handle multiple images
     const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
-    const imageContent = images.map((base64, index) => ({
+    const imageContent = images.map((base64) => ({
       type: 'image_url',
       image_url: {
         url: `data:image/jpeg;base64,${base64}`
       }
     }));
 
-    // Call OpenAI Vision API to analyze the homework image
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI Gateway (Gemini vision) to analyze the homework image
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Lovable-API-Key': lovableApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -80,7 +88,7 @@ Return ONLY valid JSON with this structure:
   ]
 }
 
-CRITICAL: Keep response under 5000 characters total. Be concise.`
+CRITICAL: Every question MUST have a non-empty "options" array with 4 options and a "correctAnswer" that exactly matches one of them. Keep explanations short.`
           },
           {
             role: 'user',
@@ -95,29 +103,26 @@ CRITICAL: Keep response under 5000 characters total. Be concise.`
             ]
           }
         ],
-        max_tokens: 2000,
-        temperature: 0.7
+        max_tokens: 8000,
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('OpenAI API error:', response.status, errText);
-      const noCredits = response.status === 429 && /quota|credit/i.test(errText);
-      return new Response(JSON.stringify({
-        success: false,
-        error: noCredits
-          ? 'נגמר הקרדיט בחשבון OpenAI. יש להוסיף קרדיט כדי ליצור אתגרים מצילום.'
-          : response.status === 429
-            ? 'יותר מדי בקשות כרגע, נסו שוב בעוד דקה.'
-            : `שגיאה בשירות ניתוח התמונות (${response.status})`,
-      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      console.error('Lovable AI Gateway error:', response.status, errText);
+      const message = response.status === 429
+        ? 'יותר מדי בקשות כרגע, נסו שוב בעוד דקה.'
+        : response.status === 402
+          ? 'נגמרו קרדיטי הבינה המלאכותית ב-Lovable. ניתן להוסיף קרדיטים בהגדרות החשבון.'
+          : `שגיאה בשירות ניתוח התמונות (${response.status})`;
+      return new Response(JSON.stringify({ success: false, error: message }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const openAIResponse = await response.json();
-    const analysisResult = openAIResponse.choices[0].message.content;
+    const aiResponse = await response.json();
+    const analysisResult = aiResponse.choices[0].message.content;
 
-    console.log('OpenAI analysis result:', analysisResult);
+    console.log('AI analysis result length:', analysisResult?.length);
 
     // Parse the JSON response - handle markdown code blocks
     let parsedResult;
@@ -132,7 +137,7 @@ CRITICAL: Keep response under 5000 characters total. Be concise.`
       
       parsedResult = JSON.parse(cleanedResult);
     } catch (error) {
-      console.error('Failed to parse OpenAI response:', error);
+      console.error('Failed to parse AI response:', error);
       console.error('Raw response:', analysisResult);
       throw new Error('Failed to parse AI response');
     }
